@@ -19,8 +19,9 @@ if ($ARGV[0]) {
     $DEBUG = 1 if $ARGV[0] eq '--debug';
 }
 
+# TODO: Make these configurable
 my $NETKAN_DATA = "$ENV{HOME}/.NetKAN";
-my $NETKAN_DIR = "$Bin/../NetKAN";
+my $NETKAN_DIR = "$NETKAN_DATA/NetKAN";
 my $CKAN_META  = "$NETKAN_DATA/CKAN-meta";
 
 if ( ! -d $NETKAN_DATA ) {
@@ -61,7 +62,7 @@ system("git", "clone", "--recursive", 'git@github.com:KSP-CKAN/CKAN-meta');
 chdir($NETKAN_DIR);
 system("git", "pull", "-X", "theirs");
 
-foreach my $file (glob("*.netkan")) {
+foreach my $file (glob("NetKAN/*.netkan")) {
     my $basename = basename($file,  ".netkan");
 
     $log->DEBUG("Downloading metadata for $basename...") if $DEBUG;
