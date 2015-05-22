@@ -13,7 +13,7 @@ NetKAN will need certs for mono
 mozroots --import --ask-remove
 ```
 
-# We'll be using lib local for our Perl deps.
+We'll be using lib local for our Perl deps.
 ```bash
 perl -Mlocal::lib >> ~/.bashrc
 ```
