@@ -13,6 +13,12 @@ use Log::Tiny;
 use Sys::RunAlone;
 use Time::Limit '3000';
 
+# PODNAME: netkan-indexer
+
+# ABSTRACT: netkan-indexer - Our primary netkan indexing script
+
+# VERSION
+
 # Convert KerbalStuff and GitHub releases into CKAN metadata!
 # It's the Networked Kerbal Archive Network. (NetKAN) :)
 
