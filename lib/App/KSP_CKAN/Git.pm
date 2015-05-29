@@ -69,7 +69,7 @@ has 'clean'     => ( is => 'ro', default => sub { 0 } );
 has 'shallow'   => ( is => 'ro', default => sub { 1 } );
 has '_git'      => ( is => 'rw', isa => sub { "Git::Wrapper" }, lazy => 1, builder => 1 );
 
-method _build__git() {
+method _build__git {
   if ( ! -d $self->local ) {
     mkpath($self->local);
   }
@@ -87,14 +87,14 @@ method _build__git() {
   });
 }
 
-method _build_working() {
+method _build_working {
   $self->remote =~ m/^(?:.*\/)?(.+)$/;
   my $working = $1;
   $working =~ s/\.git$//;
   return $working;
 }
 
-method _clone() {
+method _clone {
   # TODO: I think Git::Wrapper has a way to do this natively
   # TODO: If not, wrap it in a try/catch
   if ($self->shallow) {
@@ -105,12 +105,78 @@ method _clone() {
   return;
 }
 
-method _clean() {
+method _clean {
   local $CWD = $self->local;
   if ( -d $self->working) {
     remove_tree($self->working);
   }
   return;
+}
+
+=method add_all
+
+  $git->add;
+
+This method will perform a 'git add -A' 
+
+=cut
+
+# TODO: It'd probably be nice to allow a list of 
+# files instead
+method add {
+  $self->_git->add({ A => 1 });
+  return;
+}
+
+=method changed
+  
+  my @changed = $git->changed;
+
+Will return a list of changed files. Can be used in scalar
+context or an if block.
+
+  if ($git->changed) {
+    say "We've got changed files!";
+  }
+
+=cut
+
+method changed {
+   return $self->_git->diff({ 'name-only' => 1, }, qw|--stat origin/master| );
+}
+
+=method commit
+
+  $git->commit( all => 1, message => "Commit Message!" );
+
+Will commit all staged added files with a generic
+commit message.
+
+=over
+
+=item all
+
+Optional argument. Defaults to false.
+
+=item file
+
+Optional argument. Will commit all if not provided.
+
+=item message
+
+Optional argument. Will litterally add 'Generic Commit' as
+the commit message if not provided.
+
+=back
+
+=cut
+
+method commit(:$all = 0, :$file = 0, :$message = "Generic Commit") {
+  if ($all || ! $file) {
+    return $self->_git->commit({ a => 1 }, "-m $message");
+  } else {
+    return $self->_git->commit("$file -m \"$message\"");
+  }
 }
 
 1;
