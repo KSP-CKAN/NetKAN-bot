@@ -56,6 +56,21 @@ isnt("$testpath/CKAN-meta", 1, "Clean was successful");
 isa_ok($git->_git, "Git::Wrapper");
 is(-e "$testpath/CKAN-meta/README.md", 1, "Cloned successfully");
 
+open my $in, '>', "$testpath/CKAN-meta/test_file.ckan";
+print $in "{\n}";
+close $in;
+
+# Test adding
+is($git->changed, 0, "No files were added");
+$git->add;
+is($git->changed, 1, "Files were added");
+
+# Test Committing a single file
+
+# TODO: This is broken
+my @files = $git->changed;
+$git->commit( all => 1);
+is($git->changed, 0, "Commit successful");
 
 # Cleanup after ourselves
 { 
