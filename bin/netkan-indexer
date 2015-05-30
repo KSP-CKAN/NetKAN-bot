@@ -10,6 +10,8 @@ use File::Path 'rmtree';
 use Try::Tiny;
 use HTTP::Tiny;
 use Log::Tiny;
+use Sys::RunAlone;
+use Time::Limit '3000';
 
 # Convert KerbalStuff and GitHub releases into CKAN metadata!
 # It's the Networked Kerbal Archive Network. (NetKAN) :)
@@ -137,3 +139,5 @@ sub validate {
     };
     return $return;
 }
+
+__END__
