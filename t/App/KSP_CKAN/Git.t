@@ -7,7 +7,7 @@ use Test::Warnings;
 use File::Path qw(remove_tree mkpath);
 use File::chdir;
 use File::Spec 'tmpdir';
-use File::Copy::Recursive 'dircopy';
+use File::Copy::Recursive qw(dircopy dirmove);
 
 # Setup our test environment
 our $tmp = File::Spec->tmpdir();
@@ -19,24 +19,30 @@ dircopy("t/data", "$testpath/data");
   system("git", "init");
   system("git", "add", "-A");
   system("git", "commit", "-a", "-m", "Commit ALL THE THINGS!");
+  chdir("../");
+  dirmove("CKAN-meta", "CKAN-meta-tmp");
+  system("git", "clone", "--bare", "CKAN-meta-tmp", "CKAN-meta");
+
 }
 
 use_ok("App::KSP_CKAN::Git");
 
 # Test we can get our working directory
-my @test_git = (
-  "$testpath/data/CKAN-meta",
-  'git@github.com:techman83/CKAN-meta.git',
-  'https://github.com/techman83/CKAN-meta.git',
-);
-
-foreach my $working (@test_git) {
-  my $git = App::KSP_CKAN::Git->new(
-    remote => $working,
-    local => $testpath,
+subtest 'Working Dir Parsing' => sub {
+  my @test_git = (
+    "$testpath/data/CKAN-meta",
+    'git@github.com:techman83/CKAN-meta.git',
+    'https://github.com/techman83/CKAN-meta.git',
   );
-
-  is($git->working, 'CKAN-meta', "'CKAN-meta' parsed from $working"); 
+  
+  foreach my $working (@test_git) {
+    my $git = App::KSP_CKAN::Git->new(
+      remote => $working,
+      local => $testpath,
+    );
+  
+    is($git->working, 'CKAN-meta', "'CKAN-meta' parsed from $working"); 
+  };
 };
 
 # Test our instantiation
@@ -61,23 +67,64 @@ print $in "{\n}";
 close $in;
 
 # Test adding
-is($git->changed, 0, "No files were added");
+is($git->changed, 0, "No file was added");
 $git->add;
-is($git->changed, 1, "Files were added");
+is($git->changed, 1, "File was added");
 
 # Test Committing a single file
+subtest 'Committing' => sub {
+  my @files = $git->changed;
+  $git->commit(file => $files[0]);
+  is($git->changed(origin => 0), 0, "Commit successful");
+  is($git->changed, 1, "Commit not yet pushed");
+  $git->push;
+  is($git->changed, 0, "Commit pushed");
+  
+  # Test committing all files
+  for my $filename (qw(test_file2.ckan test_file3.ckan)) {
+    open my $in, '>', "$testpath/CKAN-meta/$filename";
+    print $in "{\n}";
+    close $in;
+  }
+  $git->add;
+  is($git->changed, 2, "Files were added");
+  $git->commit(all => 1, message => "All the comitting");
+  is($git->changed(origin => 0), 0, "Commit successful");
+  $git->push;
+  is($git->changed, 0, "Commit pushed");
+};
 
-# TODO: This is broken
-my @files = $git->changed;
-$git->commit( all => 1);
-is($git->changed, 0, "Commit successful");
+# Pull tests
+# TODO: Expand these
+my $pull = App::KSP_CKAN::Git->new(
+  remote => "$testpath/data/CKAN-meta",
+  working => "CKAN-meta-pull",
+  local => $testpath,
+  clean => 1,
+);
+$pull->pull;
+{
+  local $CWD = "$testpath/CKAN-meta-pull";
+  open my $in, '>', "$testpath/CKAN-meta-pull/test_pull.ckan";
+  print $in "{\n}";
+  close $in;
+}
+$pull->add;
+$pull->commit(all => 1);
+$pull->push;
+$git->pull;
+is(-e "$testpath/CKAN-meta/test_pull.ckan", 1, "Pull successful");
+
+# Test accidental deletes
+unlink("$testpath/CKAN-meta/test_file.ckan");
+$git->add;
+is($git->changed, 1, "File delete not commited");
 
 # Cleanup after ourselves
-{ 
-  if ( -d $testpath ) {
-    remove_tree($testpath);
-  }
+if ( -d $testpath ) {
+  remove_tree($testpath);
 }
+
 
 done_testing();
 __END__
