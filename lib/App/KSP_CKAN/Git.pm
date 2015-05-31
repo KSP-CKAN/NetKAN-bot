@@ -67,6 +67,7 @@ has 'local'     => ( is => 'ro', required => 1 );
 has 'working'   => ( is => 'ro', lazy => 1, builder => 1 );
 has 'clean'     => ( is => 'ro', default => sub { 0 } );
 has 'shallow'   => ( is => 'ro', default => sub { 1 } );
+has 'branch'    => ( is => 'rw', lazy => 1, builder => 1 );
 has '_git'      => ( is => 'rw', isa => sub { "Git::Wrapper" }, lazy => 1, builder => 1 );
 
 method _build__git {
@@ -113,6 +114,11 @@ method _clean {
   return;
 }
 
+method _build_branch {
+  my @parse = $self->_git->rev_parse(qw|--abbrev-ref HEAD|);
+  return $parse[0];
+}
+
 =method add_all
 
   $git->add;
@@ -122,9 +128,9 @@ This method will perform a 'git add -A'
 =cut
 
 # TODO: It'd probably be nice to allow a list of 
-# files instead
+# files
 method add {
-  $self->_git->add({ A => 1 });
+  $self->_git->add(".");
   return;
 }
 
@@ -132,17 +138,27 @@ method add {
   
   my @changed = $git->changed;
 
-Will return a list of changed files. Can be used in scalar
-context or an if block.
+Will return a list of changed files when compared to 
+origin/current_branch. Can be used in scalar context 
+(number of commited files) or an if block.
 
   if ($git->changed) {
     say "We've got changed files!";
   }
 
+Takes an optional bool parameter of 'origin' if you want
+a list of comparing local.
+
+  my @local = $git->changed( origin => 0 );
+
 =cut
 
-method changed {
-   return $self->_git->diff({ 'name-only' => 1, }, qw|--stat origin/master| );
+method changed(:$origin = 1) {
+  if ( $origin ) {
+    return $self->_git->diff({ 'name-only' => 1, }, "--stat", "origin/".$self->branch );
+  } else {
+    return $self->_git->diff({ 'name-only' => 1, });
+  }
 }
 
 =method commit
@@ -175,8 +191,41 @@ method commit(:$all = 0, :$file = 0, :$message = "Generic Commit") {
   if ($all || ! $file) {
     return $self->_git->commit({ a => 1 }, "-m $message");
   } else {
-    return $self->_git->commit("$file -m \"$message\"");
+    return $self->_git->commit($file, "-m \"$message\"");
   }
+}
+
+=method push
+  
+  $git->push;
+
+Will push the local branch to origin/branh.
+
+=cut
+
+method push {
+  return $self->_git->push("origin",$self->branch);
+}
+
+=method pull
+
+  $git->pull;
+
+Performs a git pull. Takes optional bool arguments of
+'ours' and 'theirs' which will tell git who wins when
+merge conflicts arise.
+
+=cut
+
+method pull(:$ours?,:$theirs?) {
+  if ($theirs) {
+    $self->_git->pull(qw|-X theirs|);
+  } elsif ($ours) {
+    $self->_git->pull(qw|-X ours|);
+  } else {
+    $self->_git->pull;
+  }
+  return;
 }
 
 1;
