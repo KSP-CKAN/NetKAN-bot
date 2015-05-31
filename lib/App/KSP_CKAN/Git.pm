@@ -29,7 +29,7 @@ use namespace::clean;
 
 =head1 DESCRIPTION
 
-CKAN's development + build process is built around get. The
+CKAN's development + build process is built around git. The
 things we need to do are pretty common and all git 
 interactions will fit nicely here.
 
