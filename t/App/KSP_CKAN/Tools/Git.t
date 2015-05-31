@@ -25,7 +25,7 @@ dircopy("t/data", "$testpath/data");
 
 }
 
-use_ok("App::KSP_CKAN::Git");
+use_ok("App::KSP_CKAN::Tools::Git");
 
 # Test we can get our working directory
 subtest 'Working Dir Parsing' => sub {
@@ -36,7 +36,7 @@ subtest 'Working Dir Parsing' => sub {
   );
   
   foreach my $working (@test_git) {
-    my $git = App::KSP_CKAN::Git->new(
+    my $git = App::KSP_CKAN::Tools::Git->new(
       remote => $working,
       local => $testpath,
     );
@@ -46,12 +46,12 @@ subtest 'Working Dir Parsing' => sub {
 };
 
 # Test our instantiation
-my $git = App::KSP_CKAN::Git->new(
+my $git = App::KSP_CKAN::Tools::Git->new(
   remote => "$testpath/data/CKAN-meta",
   local => $testpath,
   clean => 1,
 );
-isa_ok($git, "App::KSP_CKAN::Git");
+isa_ok($git, "App::KSP_CKAN::Tools::Git");
 
 # Test Cleanup
 mkpath("$testpath/CKAN-meta");
@@ -96,7 +96,7 @@ subtest 'Committing' => sub {
 
 # Pull tests
 # TODO: Expand these
-my $pull = App::KSP_CKAN::Git->new(
+my $pull = App::KSP_CKAN::Tools::Git->new(
   remote => "$testpath/data/CKAN-meta",
   working => "CKAN-meta-pull",
   local => $testpath,
