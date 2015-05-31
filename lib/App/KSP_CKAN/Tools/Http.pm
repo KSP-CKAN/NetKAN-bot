@@ -36,7 +36,7 @@ method _build__http {
   $http->mirror( url => $url, path => "/path/to/file.pl );
 
 Has an optional argument 'exe' which will mark it
-executeable for the current user.
+executable for the current user.
 
 =cut
 
