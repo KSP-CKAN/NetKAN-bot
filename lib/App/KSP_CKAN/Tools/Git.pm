@@ -140,7 +140,7 @@ method add {
 
 Will return a list of changed files when compared to 
 origin/current_branch. Can be used in scalar context 
-(number of commited files) or an if block.
+(number of committed files) or an if block.
 
   if ($git->changed) {
     say "We've got changed files!";
@@ -180,7 +180,7 @@ Optional argument. Will commit all if not provided.
 
 =item message
 
-Optional argument. Will litterally add 'Generic Commit' as
+Optional argument. Will literally add 'Generic Commit' as
 the commit message if not provided.
 
 =back
