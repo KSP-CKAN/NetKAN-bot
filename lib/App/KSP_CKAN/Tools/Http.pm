@@ -1,4 +1,4 @@
-package App::KSP_CKAN::Http;
+package App::KSP_CKAN::Tools::Http;
 
 use v5.010;
 use strict;

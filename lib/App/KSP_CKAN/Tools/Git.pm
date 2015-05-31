@@ -1,4 +1,4 @@
-package App::KSP_CKAN::Git;
+package App::KSP_CKAN::Tools::Git;
 
 use v5.010;
 use strict;

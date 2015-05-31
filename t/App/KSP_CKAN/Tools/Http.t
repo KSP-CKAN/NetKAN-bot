@@ -12,9 +12,9 @@ our $tmp = File::Spec->tmpdir();
 our $testpath = "$tmp/KSP_CKAN-test";
 mkpath($testpath);
 
-use_ok("App::KSP_CKAN::Http");
+use_ok("App::KSP_CKAN::Tools::Http");
 
-my $http = App::KSP_CKAN::Http->new();
+my $http = App::KSP_CKAN::Tools::Http->new();
 
 subtest 'mirror' => sub {
   $http->mirror( url => "http://ci.ksp-ckan.org:8080/job/NetKAN/lastSuccessfulBuild/artifact/netkan.exe", path => "$testpath/netkan.exe");
