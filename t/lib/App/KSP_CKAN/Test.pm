@@ -122,10 +122,13 @@ method create_config(:$optional = 1) {
   open my $in, '>', $self->_tmp."/.ksp-ckan";
   print $in "CKAN_meta=".$self->_tmp."/data/CKAN-meta\n";
   print $in "NetKAN=".$self->_tmp."/data/NetKAN\n";
+  print $in "netkan_exe=http://ci.ksp-ckan.org:8080/job/NetKAN/lastSuccessfulBuild/artifact/netkan.exe\n";
+  print $in "ckan_validate=https://raw.githubusercontent.com/KSP-CKAN/CKAN/master/bin/ckan-validate.py\n";
+  print $in "ckan_schema=https://raw.githubusercontent.com/KSP-CKAN/CKAN/master/CKAN.schema\n";
   
   if ($optional) {
     print $in "GH_token=123456789\n";
-    print $in "working=".$self->_tmp."\n";
+    print $in "working=".$self->_tmp."/working\n";
   }
 
   close $in;
