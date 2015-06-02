@@ -11,7 +11,7 @@ use Try::Tiny;
 use HTTP::Tiny;
 use Log::Tiny;
 use Sys::RunAlone;
-use Time::Limit '3000';
+use Time::Limit '6600';
 
 # Convert KerbalStuff and GitHub releases into CKAN metadata!
 # It's the Networked Kerbal Archive Network. (NetKAN) :)
@@ -65,6 +65,7 @@ chdir($NETKAN_DIR);
 system("git", "pull", "-X", "theirs");
 
 foreach my $file (glob("NetKAN/*.netkan")) {
+    my $starttime = time;
     my $basename = basename($file,  ".netkan");
 
     $log->DEBUG("Downloading metadata for $basename...") if $DEBUG;
@@ -85,6 +86,8 @@ foreach my $file (glob("NetKAN/*.netkan")) {
     catch {
         $log->WARN("Processing $file FAILED");
     };
+
+    $log->DEBUG("$file took ".(time - $starttime)." seconds to inflate") if $DEBUG;
 }
 
 # Process Chagnes
