@@ -108,6 +108,38 @@ Does what it says on the tin, cleans up our mess.
 
 =cut
 
+=method create_config
+  
+  $test->create_config( optional => 0 );
+
+Creates a dummy config file for testing. The 'optional'
+defaults to true if unspecified, generating a test config 
+with optional values.
+
+=cut
+
+method create_config(:$optional = 1) {
+  open my $in, '>', $self->_tmp."/.ksp-ckan";
+  print $in "CKAN_meta=".$self->_tmp."/data/CKAN-meta\n";
+  print $in "NetKAN=".$self->_tmp."/data/NetKAN\n";
+  
+  if ($optional) {
+    print $in "GH_token=123456789\n";
+    print $in "working=".$self->_tmp."\n";
+  }
+
+  close $in;
+  return;
+}
+
+=method cleanup
+  
+  $test->cleanup;
+
+Does what it says on the tin, cleans up our mess.
+
+=cut
+
 method cleanup {
   if ( -d $self->_tmp ) {
     remove_tree($self->_tmp);
