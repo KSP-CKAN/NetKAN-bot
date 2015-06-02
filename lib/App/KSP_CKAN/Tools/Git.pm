@@ -123,7 +123,7 @@ method _build_branch {
 
   $git->add;
 
-This method will perform a 'git add -A' 
+This method will perform a 'git add .' 
 
 =cut
 

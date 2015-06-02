@@ -21,7 +21,11 @@ my $config = App::KSP_CKAN::Tools::Config->new(
 is($config->CKAN_meta, $test->_tmp."/data/CKAN-meta", "NetKAN loaded from config");
 is($config->NetKAN, $test->_tmp."/data/NetKAN", "NetKAN loaded from config");
 is($config->GH_token, "123456789", "GH_token loaded from config");
-is($config->working, $test->_tmp, "working loaded from config");
+is($config->working, $test->_tmp."/working", "working loaded from config");
+is(-d $config->working, 1, "working was automatically created");
+is($config->netkan_exe, "http://ci.ksp-ckan.org:8080/job/NetKAN/lastSuccessfulBuild/artifact/netkan.exe", "netkan_exe loaded from config");
+is($config->ckan_validate, "https://raw.githubusercontent.com/KSP-CKAN/CKAN/master/bin/ckan-validate.py", "ckan_validate loaded from config");
+is($config->ckan_schema, "https://raw.githubusercontent.com/KSP-CKAN/CKAN/master/CKAN.schema", "ckan_schema loaded from config");
 
 $test->create_config( optional => 0 );
 $config = App::KSP_CKAN::Tools::Config->new(
@@ -30,5 +34,7 @@ $config = App::KSP_CKAN::Tools::Config->new(
 
 is($config->GH_token, 0, "GH_token returns false");
 is($config->working, $ENV{HOME}."/CKAN-working", "working default generated");
+
+$test->cleanup;
 
 done_testing();
