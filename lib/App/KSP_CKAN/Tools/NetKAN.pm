@@ -39,7 +39,7 @@ data and only run the inflater when required.
 =cut
 
 has 'netkan'    => ( is => 'ro', required => 1 );
-has 'cache'     => ( is => 'ro', default => sub { File::Spec->tmpdir()."NetKAN-cache"; } );
+has 'cache'     => ( is => 'ro', default => sub { File::Spec->tmpdir()."/NetKAN-cache"; } );
 has 'file'      => ( is => 'ro', required => 1);
 has 'ckan_meta' => ( is => 'ro', required => 1 );
 has 'token'     => ( is => 'ro' );
