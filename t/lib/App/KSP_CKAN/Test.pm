@@ -94,8 +94,15 @@ path.
 =cut
 
 method create_ckan($file) {
+  # Lets us generate CKANs that are different.
+  # http://www.perlmonks.org/?node_id=233023
+  my @chars = ("A".."Z", "a".."z");
+  my $rand;
+  $rand .= $chars[rand @chars] for 1..8;
+
+  # Create the CKAN
   open my $in, '>', $file;
-  print $in '{ "spec_version": 1, "identifier": "ExampleKAN", "license": "CC-BY-NC-SA", "ksp_version": "0.90", "name": "Example KAN", "abstract": "It\'s an example!", "author": "Techman83", "version": "1.0.0.1", "download": "https://example.com/example.zip" }';
+  print $in qq{ "spec_version": 1, "identifier": "ExampleKAN", "license": "CC-BY-NC-SA", "ksp_version": "0.90", "name": "Example KAN", "abstract": "It's a $rand example!", "author": "Techman83", "version": "1.0.0.1", "download": "https://example.com/example.zip" };
   close $in;
   return;
 }
