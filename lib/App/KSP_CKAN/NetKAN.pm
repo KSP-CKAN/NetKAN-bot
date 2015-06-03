@@ -1,4 +1,4 @@
-package App::KSP_CKAN::Tools::NetKAN;
+package App::KSP_CKAN::NetKAN;
 
 use v5.010;
 use strict;
@@ -20,7 +20,7 @@ use namespace::clean;
 
 =head1 SYNOPSIS
 
-  use App::KSP_CKAN::Tools::NetKAN;
+  use App::KSP_CKAN::NetKAN;
 
   my $netkan = App::KSP_CKAN::NetKAN->new(
     config => $config,
@@ -49,7 +49,7 @@ method _build__http {
 }
 
 method _build__CKAN_meta {
-  return App::KSP_CKAN::Git->new(
+  return App::KSP_CKAN::Tools::Git->new(
     remote => $self->config->CKAN_meta,
     local => $self->config->working,
     clean => 1,
@@ -57,7 +57,7 @@ method _build__CKAN_meta {
 }
 
 method _build__NetKAN {
-  return App::KSP_CKAN::Git->new(
+  return App::KSP_CKAN::Tools::Git->new(
     remote => $self->config->NetKAN,
     local => $self->config->working,
     clean => 1,
@@ -66,21 +66,21 @@ method _build__NetKAN {
 
 method _mirror_files {
   # netkan.exe
-  $self->http->mirror( 
+  $self->_http->mirror( 
     url => $self->config->netkan_exe,
     path => $self->config->working."/netkan.exe",
     exe => 1,
   );
 
   # ckan-validate.py
-  $self->http->mirror( 
+  $self->_http->mirror( 
     url => $self->config->ckan_validate,
     path => $self->config->working."/ckan-validate.py",
     exe => 1,
   );
 
   # CKAN.schema
-  $self->http->mirror( 
+  $self->_http->mirror( 
     url => $self->config->ckan_schema,
     path => $self->config->working."/CKAN.schema",
     exe => 1,
@@ -123,15 +123,15 @@ method _commit {
   my @changes = $self->_CKAN_meta->changed;
 
   foreach my $changed (@changes) {
-    if ( ! $self->_validate($self->config->working."/".$self->_CKAN_meta->working."/".$changed) ) {
+    my $file = $self->config->working."/".$self->_CKAN_meta->working."/".$changed;
+    if ( ! $self->_validate($file) ) {
       #$log->WARN("Failed to Parse $changed");
-      # TODO: Write reset method
-      $self->_CKAN_meta->reset($self->config->working."/".$self->_CKAN_meta->working."/".$changed);
+      $self->_CKAN_meta->reset($file);
     }
     else {
       #$log->INFO("Commiting $changed");
       $self->_CKAN_meta->commit(
-        file => $self->config->working."/".$self->_CKAN_meta->working."/".$changed,
+        file => $file,
         message => "NetKAN generated mods - $changed",
       );
     }
@@ -144,12 +144,14 @@ method _commit {
 #TODO: Write Tests + doco
 
 method full_index {
+  $self->_mirror_files;
   $self->_inflate_all;
   $self->_commit;
   return;
 }
 
 method lite_index {
+  $self->_mirror_files;
   $self->_inflate_all( rescan => 0 );
   $self->_commit;
   return;
