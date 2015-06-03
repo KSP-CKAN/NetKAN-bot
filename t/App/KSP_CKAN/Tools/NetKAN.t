@@ -38,7 +38,7 @@ $http->mirror( url => "http://ci.ksp-ckan.org:8080/job/NetKAN/lastSuccessfulBuil
 use_ok("App::KSP_CKAN::Tools::NetKAN");
 my $netkan = App::KSP_CKAN::Tools::NetKAN->new( 
   netkan    => $test->tmp."/netkan.exe",
-  cache     => $test->tmp."/cache",
+  cache     => $test->tmp."/cache", # TODO: Test default cache location
   ckan_meta => $test->tmp."/CKAN-meta",
   file => $test->tmp."/NetKAN/NetKAN/DogeCoinFlag.netkan"
 );
