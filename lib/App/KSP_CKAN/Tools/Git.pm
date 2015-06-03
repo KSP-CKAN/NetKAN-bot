@@ -195,6 +195,19 @@ method commit(:$all = 0, :$file = 0, :$message = "Generic Commit") {
   }
 }
 
+=method reset
+  
+  $git->reset( file => $file );
+
+Will reset the uncommited file.
+
+=cut
+
+# TODO: We can likely expand what we can do with reset.
+method reset(:$file) {
+  return $self->_git->RUN("reset", $file);
+}
+
 =method push
   
   $git->push;

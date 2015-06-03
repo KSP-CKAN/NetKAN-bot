@@ -76,6 +76,14 @@ subtest 'Committing' => sub {
   is($git->changed(origin => 0), 0, "Commit successful");
   $git->push;
   is($git->changed, 0, "Commit pushed");
+
+  # Test reseting
+  $test->create_ckan( $test->tmp."/CKAN-meta/test_file2.ckan" );
+  is($git->changed, 1, "test_file2.ckan was changed");
+  @files = $git->changed;
+  $git->reset( file => $files[0] );
+  $git->push;
+  is($git->changed, 1, "test_file2.ckan was not pushed");
 };
 
 # Pull tests
@@ -97,7 +105,7 @@ is(-e $test->tmp."/CKAN-meta/test_pull.ckan", 1, "Pull successful");
 # Test accidental deletes
 unlink($test->tmp."/CKAN-meta/test_file.ckan");
 $git->add;
-is($git->changed, 1, "File delete not commited");
+is($git->changed, 2, "File delete not commited");
 
 # Cleanup after ourselves
 $test->cleanup;
