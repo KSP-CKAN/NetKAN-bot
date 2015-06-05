@@ -49,7 +49,6 @@ has '_cli'      => ( is => 'ro', lazy => 1, builder => 1 );
 has '_cache'    => ( is => 'ro', lazy => 1, builder => 1 );
 
 method _build__cache {
-  # We don't want stale test data
   if ( ! -d $self->cache ) {
     mkpath($self->cache);
   }
