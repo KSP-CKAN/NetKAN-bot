@@ -125,7 +125,7 @@ with optional values.
 
 =cut
 
-method create_config(:$optional = 1) {
+method create_config(:$optional = 1, :$nogh = 0) {
   open my $in, '>', $self->_tmp."/.ksp-ckan";
   print $in "CKAN_meta=".$self->_tmp."/data/CKAN-meta\n";
   print $in "NetKAN=".$self->_tmp."/data/NetKAN\n";
@@ -133,8 +133,9 @@ method create_config(:$optional = 1) {
   print $in "ckan_validate=https://raw.githubusercontent.com/KSP-CKAN/CKAN/master/bin/ckan-validate.py\n";
   print $in "ckan_schema=https://raw.githubusercontent.com/KSP-CKAN/CKAN/master/CKAN.schema\n";
   
+  # TODO: This is a little ugly.
   if ($optional) {
-    print $in "GH_token=123456789\n";
+    print $in "GH_token=123456789\n" if ! $nogh;
     print $in "working=".$self->_tmp."/working\n";
   }
 
