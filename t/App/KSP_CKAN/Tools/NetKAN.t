@@ -52,6 +52,7 @@ $netkan = App::KSP_CKAN::Tools::NetKAN->new(
   ckan_meta => $test->tmp."/CKAN-meta",
   file => $test->tmp."/NetKAN/NetKAN/DogeCoinFlag-broken.netkan"
 );
+ok( -d $test->tmp."/cache", "NetKAN Cache path set correctly");
 isnt( $netkan->inflate, 0, "Return failure correctly" );
 
 # Cleanup after ourselves
