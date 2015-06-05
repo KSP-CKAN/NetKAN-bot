@@ -7,6 +7,7 @@ use autodie;
 use Method::Signatures 20140224;
 use Scalar::Util::Reftype;
 use File::chdir;
+use Capture::Tiny qw(capture);
 use Carp qw( croak );
 use App::KSP_CKAN::Tools::Http;
 use App::KSP_CKAN::Tools::Git;
@@ -96,7 +97,7 @@ method _inflate_all(:$rescan = 1) {
   foreach my $file (glob("NetKAN/*.netkan")) {
     my $netkan = App::KSP_CKAN::Tools::NetKAN->new(
       netkan => $self->config->working."/netkan.exe",
-      chache => $self->config->working."/cache",
+      cache => $self->config->working."/cache",
       token => $self->config->GH_token,
       file => $file,
       ckan_meta => $self->config->working."/".$self->_CKAN_meta->working,
@@ -124,9 +125,9 @@ method _commit {
 
   foreach my $changed (@changes) {
     my $file = $self->config->working."/".$self->_CKAN_meta->working."/".$changed;
-    if ( ! $self->_validate($file) ) {
+    if ( $self->_validate($file) ) {
       #$log->WARN("Failed to Parse $changed");
-      $self->_CKAN_meta->reset($file);
+      $self->_CKAN_meta->reset(file => $file);
     }
     else {
       #$log->INFO("Commiting $changed");
