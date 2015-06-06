@@ -6,8 +6,6 @@ use warnings;
 use autodie;
 use Method::Signatures 20140224;
 use Scalar::Util::Reftype;
-use File::chdir;
-use Capture::Tiny qw(capture);
 use Carp qw( croak );
 use App::KSP_CKAN::Tools::Http;
 use App::KSP_CKAN::Tools::Git;
@@ -73,19 +71,6 @@ method _mirror_files {
     exe => 1,
   );
 
-  # ckan-validate.py
-  $self->_http->mirror( 
-    url => $self->config->ckan_validate,
-    path => $self->config->working."/ckan-validate.py",
-    exe => 1,
-  );
-
-  # CKAN.schema
-  $self->_http->mirror( 
-    url => $self->config->ckan_schema,
-    path => $self->config->working."/CKAN.schema",
-    exe => 1,
-  );
   return;
 }
 
@@ -108,24 +93,13 @@ method _inflate_all(:$rescan = 1) {
   return;
 }
 
-method _validate($file) {
-  my ($stderr, $stdout, $exit) = capture { 
-    local $CWD = $self->config->working;
-    system("python", "ckan-validate.py", $file);
-  };
-
-  # TODO: Logging
-  #$stdout if $stdout;
-  return $exit;
-}
-
 method _commit {
   $self->_CKAN_meta->add;
   my @changes = $self->_CKAN_meta->changed;
 
   foreach my $changed (@changes) {
     my $file = $self->config->working."/".$self->_CKAN_meta->working."/".$changed;
-    if ( $self->_validate($file) ) {
+    if ( $self->validate($file) ) {
       #$log->WARN("Failed to Parse $changed");
       $self->_CKAN_meta->reset(file => $file);
     }
@@ -157,5 +131,7 @@ method lite_index {
   $self->_commit;
   return;
 }
+
+with('App::KSP_CKAN::Roles::Validate');
 
 1;
