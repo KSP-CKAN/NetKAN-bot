@@ -6,6 +6,7 @@ use warnings;
 use autodie;
 use Method::Signatures 20140224;
 use Scalar::Util::Reftype;
+use File::chdir;
 use Carp qw( croak );
 use App::KSP_CKAN::Tools::Http;
 use App::KSP_CKAN::Tools::Git;
