@@ -101,6 +101,7 @@ method inflate {
     return;
   }
 
+  $self->debug("Inflating ".$self->file);
   my ($stderr, $stdout, $exit) = capture { 
     system($self->_cli);
   };
