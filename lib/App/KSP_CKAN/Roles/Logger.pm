@@ -46,7 +46,7 @@ has log_config  => ( is => 'ro', lazy => 1, builder => 1 );
 method _build_log_config() {
   # TODO: Integrate MooX::Options
   my $log_level = $self->_log_level;
-  my $log_path = $self->config_working;
+  my $log_path = $self->config->working;
   return qq(
     log4perl.rootLogger              = $log_level
     log4perl.appender.SCREEN         = Log::Log4perl::Appender::Screen
@@ -63,7 +63,7 @@ method _build_log_config() {
 }
 
 method _build__log_level {
-  if ( ! $self->config->debug ) {
+  if ( ! $self->config->debugging ) {
     return "INFO, LOG1";
   } else {
     return "DEBUG, LOG1, SCREEN";
