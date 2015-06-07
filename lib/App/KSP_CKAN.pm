@@ -22,4 +22,7 @@ I don't even know yet :)
 
 =cut
 
+# TODO: Dist-Zilla wants this to exist, but we'll probably never use it.
+# Do something about it.
+
 1;
