@@ -7,6 +7,56 @@ use autodie qw(:all);
 use Sys::RunAlone;
 use Time::Limit '3000'; # Something wrong if we are taking longer than 50 mins
 use App::KSP_CKAN::NetKAN;
+use App::KSP_CKAN::Tools::Config;
+
+# PODNAME: netkan-indexer
+
+# ABSTRACT: netkan-indexer - Extant NetKAN indexing bot
+
+# VERSION
+
+=head1 SYNOPSIS
+
+Usage:
+
+  Debugging commands:
+    
+  netkan-indexer --debug        : Run with debugging enabled.
+
+=head1 SETUP
+
+=head2 Installation
+
+If you have not already installed this software, the easiest way
+is to use L<cpanm> and L<local::lib>. If you don't have them installed,
+it's easy with:
+
+    curl -L http://cpanmin.us/ | perl - --self-upgrade
+    ~/perl5/bin/cpanm -L ~/perl5 App::local::lib::helper
+    source ~/perl5/bin/localenv-bashrc
+
+You might want to put that last line in your F<~/.bashrc> file.
+
+You can then install C<netkan-indexer> and related utilities with:
+
+    cpanm App::KSP_CKAN
+
+=head1 DESCRIPTION
+
+This is the extant NetKAN Indexing Bot for KSP-CKAN
+
+=head1 BUGS/Features Requests
+
+Please submit any bugs, feature requests to
+L<https://github.com/KSP-CKAN/NetKAN-bot/issues> .
+
+Contributions are more than welcome!
+
+=head1 SEE ALSO
+
+L<App::KSP-CKAN>
+
+=cut
 
 # TODO: Add CLI options
 
@@ -17,6 +67,6 @@ my $config = App::KSP_CKAN::Tools::Config->new(
 
 my $netkan = App::KSP_CKAN::NetKAN->new(
   config => $config,
-};
+);
 
 $netkan->full_index;
