@@ -45,6 +45,8 @@ executable for the current user.
 
 method mirror(:$url,:$path,:$exe = 0) {
   my $response = $self->_http->mirror($url,$path);
+  
+  # TODO: Logging! 
 
   if ($exe) {
     chmod(0755, $path);

@@ -10,6 +10,7 @@ use File::Spec 'tmpdir';
 use File::Basename qw(basename);
 use File::Path qw(mkpath);
 use Capture::Tiny qw(capture);
+use Scalar::Util::Reftype;
 use Moo;
 use namespace::clean;
 
@@ -38,6 +39,11 @@ data and only run the inflater when required.
 
 =cut
 
+my $Ref = sub {
+  croak("auth isn't a 'App::KSP_CKAN::Tools::Config' object!") unless reftype( $_[0] )->class eq "App::KSP_CKAN::Tools::Config";
+};
+
+has 'config'      => ( is => 'ro', required => 1, isa => $Ref );
 has 'netkan'    => ( is => 'ro', required => 1 );
 has 'cache'     => ( is => 'ro', default => sub { File::Spec->tmpdir()."/NetKAN-cache"; } );
 has 'file'      => ( is => 'ro', required => 1);
@@ -99,9 +105,10 @@ method inflate {
     system($self->_cli);
   };
 
-  # TODO: Logging
-  #$self->_parse_error($stdout) if $stdout;
+  $self->warn($self->_parse_error($stdout)) if $stdout;
   return $exit;
 }
+
+with('App::KSP_CKAN::Roles::Logger');
 
 1;

@@ -15,6 +15,6 @@ method _mirror_files {
   return;
 }
 
-with('App::KSP_CKAN::Roles::Validate');
+with('App::KSP_CKAN::Roles::Logger','App::KSP_CKAN::Roles::Validate');
 
 1;

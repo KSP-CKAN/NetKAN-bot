@@ -23,7 +23,7 @@ Currently lightly wraps ckan_validate.py
 
 =cut
 
-requires '_http', 'config', '_mirror_files';
+requires '_http', 'config', '_mirror_files', 'warn';
 
 after _mirror_files => sub {
   my $self = shift;
@@ -58,8 +58,7 @@ method validate($file) {
     system("python", "ckan-validate.py", $file);
   };
 
-  # TODO: Logging
-  #$stdout if $stdout;
+  $self->warn($stdout) if $stdout;
   return $exit;
 }
 
