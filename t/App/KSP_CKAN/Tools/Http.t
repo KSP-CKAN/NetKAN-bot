@@ -17,7 +17,7 @@ use_ok("App::KSP_CKAN::Tools::Http");
 my $http = App::KSP_CKAN::Tools::Http->new();
 
 subtest 'mirror' => sub {
-  $http->mirror( url => "http://ci.ksp-ckan.org:8080/job/NetKAN/lastSuccessfulBuild/artifact/netkan.exe", path => $test->tmp."/netkan.exe");
+  $http->mirror( url => "https://ckan-travis.s3.amazonaws.com/netkan.exe", path => $test->tmp."/netkan.exe");
   is(-e $test->tmp."/netkan.exe", 1, "Mirrored successfully");
   isnt(-X $test->tmp."/netkan.exe", 1, "File not executable");
   $http->mirror( url => "https://raw.githubusercontent.com/KSP-CKAN/CKAN/master/bin/ckan-validate.py", path => $test->tmp."/ckan-validate.py", exe => 1);
