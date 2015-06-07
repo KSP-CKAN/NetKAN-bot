@@ -82,6 +82,7 @@ method _inflate_all(:$rescan = 1) {
   local $CWD = $self->config->working."/".$self->_NetKAN->working;
   foreach my $file (glob("NetKAN/*.netkan")) {
     my $netkan = App::KSP_CKAN::Tools::NetKAN->new(
+      config => $self->config,
       netkan => $self->config->working."/netkan.exe",
       cache => $self->config->working."/cache",
       token => $self->config->GH_token,
@@ -101,11 +102,11 @@ method _commit {
   foreach my $changed (@changes) {
     my $file = $self->config->working."/".$self->_CKAN_meta->working."/".$changed;
     if ( $self->validate($file) ) {
-      #$log->WARN("Failed to Parse $changed");
+      $self->warn("Failed to Parse $changed");
       $self->_CKAN_meta->reset(file => $file);
     }
     else {
-      #$log->INFO("Commiting $changed");
+      $self->info("Commiting $changed");
       $self->_CKAN_meta->commit(
         file => $file,
         message => "NetKAN generated mods - $changed",
@@ -117,7 +118,7 @@ method _commit {
   return;
 }
 
-#TODO: Write Tests + doco
+#TODO: Write doco
 
 method full_index {
   $self->_mirror_files;
@@ -133,6 +134,6 @@ method lite_index {
   return;
 }
 
-with('App::KSP_CKAN::Roles::Validate');
+with('App::KSP_CKAN::Roles::Logger','App::KSP_CKAN::Roles::Validate');
 
 1;
