@@ -28,7 +28,10 @@ Provides thinly wrapped http functionality.
 has '_http'   => ( is => 'ro', lazy => 1, builder => 1 );
 
 method _build__http {
-  return HTTP::Tiny->new( timeout => 15, verify_SSL => 1 );
+  # Disabling verify for now, further info here
+  # https://forums.aws.amazon.com/thread.jspa?threadID=164095
+  # TODO: Come up with a work around.
+  return HTTP::Tiny->new( timeout => 15 );
 }
 
 =method mirror
