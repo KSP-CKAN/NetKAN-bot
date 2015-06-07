@@ -45,7 +45,7 @@ has log_config  => ( is => 'ro', lazy => 1, builder => 1 );
 
 method _build_log_config() {
   # TODO: Integrate MooX::Options
-  my $log_level = "INFO, LOG1";
+  my $log_level = $self->_log_level;
   my $log_path = $self->config_working;
   return qq(
     log4perl.rootLogger              = $log_level
@@ -60,6 +60,14 @@ method _build_log_config() {
     log4perl.appender.LOG1.layout    = Log::Log4perl::Layout::PatternLayout
     log4perl.appender.LOG1.layout.ConversionPattern = %d %p %m %n
   );
+}
+
+method _build__log_level {
+  if ( ! $self->config->debug ) {
+    return "INFO, LOG1";
+  } else {
+    return "DEBUG, LOG1, SCREEN";
+  }
 }
 
 around $_ => sub {
