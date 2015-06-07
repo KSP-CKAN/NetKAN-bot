@@ -23,7 +23,7 @@ is($config->NetKAN, $test->_tmp."/data/NetKAN", "NetKAN loaded from config");
 is($config->GH_token, "123456789", "GH_token loaded from config");
 is($config->working, $test->_tmp."/working", "working loaded from config");
 is(-d $config->working, 1, "working was automatically created");
-is($config->netkan_exe, "http://ci.ksp-ckan.org:8080/job/NetKAN/lastSuccessfulBuild/artifact/netkan.exe", "netkan_exe loaded from config");
+is($config->netkan_exe, "https://ckan-travis.s3.amazonaws.com/netkan.exe", "netkan_exe loaded from config");
 is($config->ckan_validate, "https://raw.githubusercontent.com/KSP-CKAN/CKAN/master/bin/ckan-validate.py", "ckan_validate loaded from config");
 is($config->ckan_schema, "https://raw.githubusercontent.com/KSP-CKAN/CKAN/master/CKAN.schema", "ckan_schema loaded from config");
 
