@@ -106,7 +106,7 @@ method inflate {
     system($self->_cli);
   };
 
-  $self->warn($self->_parse_error($stdout)) if $stdout;
+  $self->warn("'".$self->file."' - ".$self->_parse_error($stdout)) if $stdout;
   return $exit;
 }
 
