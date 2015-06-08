@@ -47,7 +47,7 @@ after _mirror_files => sub {
 
   $self->validate( file => "/path/to/file.pl" );
 
-Validates the ckan file at the path. Returns the exit
+Validates the CKAN file at the path. Returns the exit
 code captured (anything not '0' is considered a failure).
 
 =cut

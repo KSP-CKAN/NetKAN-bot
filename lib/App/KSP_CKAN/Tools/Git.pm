@@ -199,7 +199,7 @@ method commit(:$all = 0, :$file = 0, :$message = "Generic Commit") {
   
   $git->reset( file => $file );
 
-Will reset the uncommited file.
+Will reset the uncommitted file.
 
 =cut
 
