@@ -118,7 +118,12 @@ method _commit {
   return;
 }
 
-#TODO: Write doco
+=method full_index 
+
+Performs a full index of the NetKAN metadata and pushes
+it into CKAN-meta (or whichever repository is configured)
+
+=cut
 
 method full_index {
   $self->_mirror_files;
@@ -126,6 +131,16 @@ method full_index {
   $self->_commit;
   return;
 }
+
+=method
+
+**Not Currently Implemented**
+
+Unlike the full index, it will attempt to check options
+headers + api data for when a mod was released and only
+inflate metadata when required.
+
+=cut
 
 method lite_index {
   $self->_mirror_files;

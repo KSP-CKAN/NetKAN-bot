@@ -16,8 +16,7 @@ Provides a central logging service for KSP_CKAN
 
   with('App::KSP_CKAN::Roles::Logger');
 
-Can be consumed by any EventStreamr package. Config must exist for 
-it to end up in the central log.
+Can be consumed by any KSP_CKAN package. Config is required.
 
 Inspiratation/Credit here -> http://stackoverflow.com/questions/3018528/making-self-logging-modules-with-loglog4perl
 
