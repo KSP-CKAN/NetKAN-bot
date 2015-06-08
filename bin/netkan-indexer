@@ -6,6 +6,8 @@ use warnings;
 use autodie qw(:all);
 use Sys::RunAlone;
 use Time::Limit '3000'; # Something wrong if we are taking longer than 50 mins
+use Getopt::Long;
+use File::Spec;
 use App::KSP_CKAN::NetKAN;
 use App::KSP_CKAN::Tools::Config;
 
@@ -58,15 +60,52 @@ L<App::KSP-CKAN>
 
 =cut
 
-# TODO: Add CLI options
+my $PROGNAME = (File::Spec->splitpath($0))[2];
+$PROGNAME ||= 'netkan-indexer';
 
-# TODO: Allow config to be specified and debugging options
+my $DEBUG  = 0;
+my $LITE = 0;
+
+my $getopts_rc = GetOptions(
+  "version"       => \&version,
+  "debug!"        => \$DEBUG,
+  "lite!"          => \$LITE,
+
+  "help|?"        => \&print_usage,
+);
+
+# TODO: Allow config to be specified
 my $config = App::KSP_CKAN::Tools::Config->new(
-  debugging => 1,
+  debugging => $DEBUG,
 );
 
 my $netkan = App::KSP_CKAN::NetKAN->new(
   config => $config,
 );
 
-$netkan->full_index;
+if (! $LITE ) {
+  $netkan->full_index;
+} else {
+  $netkan->lite_index;
+}
+
+sub version {
+  $::VERSION ||= "Unreleased";
+  say "netkan-indexer version          : $::VERSION";
+  exit 1;
+}
+
+sub print_usage {
+  say q{
+  Usage:
+
+  netkan-indexer --debug        : Run with debugging enabled.
+  netkan-indexer --version      : Show version information
+
+  For more documentation, use `perldoc netkan-indexer`.
+  };
+
+  exit 1;
+}
+
+__END__
