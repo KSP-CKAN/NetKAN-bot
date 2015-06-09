@@ -111,7 +111,7 @@ method inflate {
     $self->warn("'".$self->file."' - ".$error);
   }
   use Data::Dumper;
-  print Dumper($stderr, $stdout, $exit);
+  print Dumper($stderr, $stdout, $exit, $self->_cli);
   return $exit;
 }
 
