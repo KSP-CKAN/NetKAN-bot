@@ -13,6 +13,11 @@ before_install:
   - git config --global user.name "TravisCI"
 install:
   # Deal with all of the DZIL dependancies, quickly and quietly
+  - ls -lah ~/.local/lib/python2.7/site-packages/
+  - export PYTHONPATH=~/.local/lib/python2.7/site-packages/
+  - python -V
+  - ./test.py
+  - pip install --user json-schema-validator
   - cpanm --quiet --notest --skip-satisfied Dist::Zilla
   - cpanm --quiet --notest --skip-satisfied Test::Perl::Critic
   - dzil authordeps | grep -vP '[^\w:]' | xargs -n 5 -P 10 cpanm --quiet --notest --skip-satisfied
@@ -22,10 +27,6 @@ install:
   - wget https://raw.githubusercontent.com/KSP-CKAN/CKAN/master/bin/ckan-validate.py
   - wget https://raw.githubusercontent.com/KSP-CKAN/CKAN/master/CKAN.schema
   - chmod +x ckan-validate.py
-  - python -V
-  - ./test.py
-  - pip install --user json-schema-validator
-  - ls -lah ~/.local/lib/python2.7/site-packages/
 script:
   - dzil test -v
   - ./ckan-validate.py t/data/CKAN-meta-validate/DogeCoinFlag/DogeCoinFlag-v1.02.ckan
