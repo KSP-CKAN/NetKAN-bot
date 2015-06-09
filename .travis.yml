@@ -1,7 +1,7 @@
 # thanks -> http://blogs.perl.org/users/alex_balhatchet/2013/04/travis-ci-perl.html
 language: perl
 perl:
-  - "5.22"
+#  - "5.22" 
   - "5.20"
   - "5.18"
   - "5.16"
