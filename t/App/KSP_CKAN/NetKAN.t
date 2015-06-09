@@ -31,8 +31,10 @@ $netkan->full_index;
 
 {
   local $CWD = $config->working;
-  my @files = glob( "CKAN-meta/DogeCoinFlag/*.ckan" );
-  ok($files[0] =~ /DogeCoinFlag-v\d.\d\d.ckan/, "NetKAN Inflated");
+  my @files = glob( "./CKAN-meta/DogeCoinFlag/*.ckan" );
+  foreach my $file (@files) {
+    ok($files =~ /DogeCoinFlag-v\d.\d\d.ckan/, "NetKAN Inflated");
+  }
 
   my $git = App::KSP_CKAN::Tools::Git->new(
     remote => $config->CKAN_meta,
