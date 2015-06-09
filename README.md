@@ -1,5 +1,7 @@
 App::KSP-CKAN    [![Build Status](https://travis-ci.org/KSP-CKAN/NetKAN-bot.svg?branch=master)](https://travis-ci.org/KSP-CKAN/NetKAN-bot)  [![Coverage Status](https://coveralls.io/repos/KSP-CKAN/NetKAN-bot/badge.svg?branch=master)](https://coveralls.io/r/KSP-CKAN/NetKAN-bot?branch=master)
 
+NUDGE TRAVIS
+
 Non Perl Dependencies
 =====================
 ```bash
