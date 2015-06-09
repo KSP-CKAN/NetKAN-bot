@@ -5,7 +5,7 @@ use lib 't/lib/';
 use strict;
 use warnings;
 use Test::Most;
-use Test::Warnings;
+use Test::Warnings ':no_end_test';
 use App::KSP_CKAN::Test;
 use App::KSP_CKAN::Tools::Http;
 use App::KSP_CKAN::Tools::Git;
@@ -52,8 +52,8 @@ my $netkan = App::KSP_CKAN::Tools::NetKAN->new(
 );
 
 # TODO: Fix this on travis.
-SKIP: {
-  skip "This appears to broken on travis", 1 if $ENV{TRAVIS};
+TODO: {
+  local $TODO = "This appears to broken on travis", 4 if $ENV{TRAVIS};
   is( $netkan->inflate, 0, "Return success correctly" );
 
   my @files = glob($test->tmp."/CKAN-meta/DogeCoinFlag");
@@ -66,9 +66,10 @@ SKIP: {
     ckan_meta => $test->tmp."/CKAN-meta",
     file => $test->tmp."/NetKAN/NetKAN/DogeCoinFlag-broken.netkan"
   );
-  ok( -d $test->tmp."/cache", "NetKAN Cache path set correctly");
   isnt( $netkan->inflate, 0, "Return failure correctly" );
 }
+
+ok( -d $test->tmp."/cache", "NetKAN Cache path set correctly");
 
 # Cleanup after ourselves
 $test->cleanup;
