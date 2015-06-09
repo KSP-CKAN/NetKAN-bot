@@ -55,20 +55,20 @@ my $netkan = App::KSP_CKAN::Tools::NetKAN->new(
 SKIP: {
   skip "This appears to broken on travis", 1 if $ENV{TRAVIS};
   is( $netkan->inflate, 0, "Return success correctly" );
+
+  my @files = glob($test->tmp."/CKAN-meta/DogeCoinFlag");
+  is( -e $files[0], 1, "Meta Data inflated" );
+  
+  $netkan = App::KSP_CKAN::Tools::NetKAN->new( 
+    config    => $config, 
+    netkan    => $test->tmp."/netkan.exe",
+    cache     => $test->tmp."/cache",
+    ckan_meta => $test->tmp."/CKAN-meta",
+    file => $test->tmp."/NetKAN/NetKAN/DogeCoinFlag-broken.netkan"
+  );
+  ok( -d $test->tmp."/cache", "NetKAN Cache path set correctly");
+  isnt( $netkan->inflate, 0, "Return failure correctly" );
 }
-
-my @files = glob($test->tmp."/CKAN-meta/DogeCoinFlag");
-is( -e $files[0], 1, "Meta Data inflated" );
-
-$netkan = App::KSP_CKAN::Tools::NetKAN->new( 
-  config    => $config, 
-  netkan    => $test->tmp."/netkan.exe",
-  cache     => $test->tmp."/cache",
-  ckan_meta => $test->tmp."/CKAN-meta",
-  file => $test->tmp."/NetKAN/NetKAN/DogeCoinFlag-broken.netkan"
-);
-ok( -d $test->tmp."/cache", "NetKAN Cache path set correctly");
-isnt( $netkan->inflate, 0, "Return failure correctly" );
 
 # Cleanup after ourselves
 $test->cleanup;
