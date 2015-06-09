@@ -22,7 +22,7 @@ install:
   - wget https://raw.githubusercontent.com/KSP-CKAN/CKAN/master/bin/ckan-validate.py
   - chmod +x ckan-validate.py
   - python -V
-  - pip install json-schema-validator
+  - pip install --user json-schema-validator
 script:
   - dzil test -v
   - ./ckan-validate.py t/data/CKAN-meta-validate/DogeCoinFlag/DogeCoinFlag-v1.02.ckan
