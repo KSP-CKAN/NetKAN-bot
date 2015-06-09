@@ -1,12 +1,12 @@
 # thanks -> http://blogs.perl.org/users/alex_balhatchet/2013/04/travis-ci-perl.html
 language: perl
 perl:
-  - "5.22"
-  - "5.20"
-  - "5.18"
-  - "5.16"
-  - "5.14"
-  - "5.12"
+#  - "5.22"
+#  - "5.20"
+#  - "5.18"
+#  - "5.16"
+#  - "5.14"
+#  - "5.12"
   - "5.10"
 before_install:
   # Prevent "Please tell me who you are" errors for certain DZIL configs
@@ -20,6 +20,6 @@ install:
   - cpanm --quiet --notest Devel::Cover::Report::Coveralls
   - cpanm --quiet --notest Dist::Zilla::App::Command::cover
 script:
-  - dzil test
+  - dzil test -v
 after_success:
   - dzil cover -outputdir cover_db -report coveralls
