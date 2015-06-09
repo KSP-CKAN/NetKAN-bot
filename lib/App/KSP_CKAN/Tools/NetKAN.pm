@@ -110,7 +110,8 @@ method inflate {
     my $error = $self->_parse_error($stdout) || "' - Error wasn't parsable";
     $self->warn("'".$self->file."' - ".$error);
   }
-
+  use Data::Dumper;
+  print Dumper($stderr, $stdout, $exit);
   return $exit;
 }
 
