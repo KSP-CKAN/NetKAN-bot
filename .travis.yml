@@ -19,7 +19,12 @@ install:
   - dzil listdeps | grep -vP '[^\w:]' |  xargs -n 5 -P 10 cpanm --quiet --notest --skip-satisfied
   - cpanm --quiet --notest Devel::Cover::Report::Coveralls
   - cpanm --quiet --notest Dist::Zilla::App::Command::cover
+  - wget https://raw.githubusercontent.com/KSP-CKAN/CKAN/master/bin/ckan-validate.py
+  - chmod +x ckan-validate.py
+  - python -V
 script:
   - dzil test -v
+  - ckan-validate t/data/CKAN-meta-validate/DogeCoinFlag/DogeCoinFlag-v1.02.ckan
+  - python ckan-validate t/data/CKAN-meta-validate/DogeCoinFlag/DogeCoinFlag-v1.02.ckan
 after_success:
   - dzil cover -outputdir cover_db -report coveralls
