@@ -24,7 +24,7 @@ install:
   - python -V
 script:
   - dzil test -v
-  - ckan-validate t/data/CKAN-meta-validate/DogeCoinFlag/DogeCoinFlag-v1.02.ckan
-  - python ckan-validate t/data/CKAN-meta-validate/DogeCoinFlag/DogeCoinFlag-v1.02.ckan
+  - ./ckan-validate.py t/data/CKAN-meta-validate/DogeCoinFlag/DogeCoinFlag-v1.02.ckan
+  - python ckan-validate.py t/data/CKAN-meta-validate/DogeCoinFlag/DogeCoinFlag-v1.02.ckan
 after_success:
   - dzil cover -outputdir cover_db -report coveralls
