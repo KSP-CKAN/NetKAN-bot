@@ -13,7 +13,7 @@ before_install:
   - git config --global user.name "TravisCI"
 install:
   # Deal with all of the DZIL dependancies, quickly and quietly
-  - pip install --user json-schema-validator
+  - pip install --user jsonschema
   - ls -lah ~/.local/lib/python2.7/site-packages/
   - export PYTHONPATH=~/.local/lib/python2.7/site-packages/
   - python -V
