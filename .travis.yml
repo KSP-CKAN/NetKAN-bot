@@ -11,6 +11,7 @@ perl:
 before_install:
   # Prevent "Please tell me who you are" errors for certain DZIL configs
   - git config --global user.name "TravisCI"
+  - git config --global user.email "travis@travis-ci.org"
 install:
   # Deal with all of the DZIL dependancies, quickly and quietly
   - sudo apt-get update
