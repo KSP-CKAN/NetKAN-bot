@@ -16,6 +16,7 @@ install:
   # Deal with all of the DZIL dependancies, quickly and quietly
   - sudo apt-get update
   - sudo apt-get install mono-complete libcurl4-openssl-dev -y
+  - mozroots --import --ask-remove
   - pip install --user jsonschema
   - export PYTHONPATH=~/.local/lib/python2.7/site-package
   - cpanm --quiet --notest --skip-satisfied Dist::Zilla
