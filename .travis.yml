@@ -13,7 +13,9 @@ before_install:
   - git config --global user.name "TravisCI"
 install:
   # Deal with all of the DZIL dependancies, quickly and quietly
-  - sudo apt-get install python-jsonschema mono-complete libcurl4-openssl-dev
+  - sudo apt-get install mono-complete libcurl4-openssl-dev
+  - pip install --user jsonschema
+  - export PYTHONPATH=~/.local/lib/python2.7/site-package
   - cpanm --quiet --notest --skip-satisfied Dist::Zilla
   - cpanm --quiet --notest --skip-satisfied Test::Perl::Critic
   - dzil authordeps | grep -vP '[^\w:]' | xargs -n 5 -P 10 cpanm --quiet --notest --skip-satisfied
