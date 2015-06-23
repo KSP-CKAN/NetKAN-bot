@@ -44,7 +44,8 @@ if ( -e "$NETKAN_DATA/github.token" ) {
 }
 
 # Update our External Dependencies
-mirror_file( "http://ci.ksp-ckan.org:8080/job/NetKAN/lastSuccessfulBuild/artifact/netkan.exe", "$NETKAN_DATA/netkan.exe" );
+# 
+mirror_file( "http://ckan-travis.s3.amazonaws.com/netkan.exe", "$NETKAN_DATA/netkan.exe" );
 mirror_file( "https://raw.githubusercontent.com/KSP-CKAN/CKAN/master/bin/ckan-validate.py", "$NETKAN_DATA/ckan-validate.py" );
 mirror_file( "https://raw.githubusercontent.com/KSP-CKAN/CKAN/master/CKAN.schema", "$NETKAN_DATA/CKAN.schema" );
 
