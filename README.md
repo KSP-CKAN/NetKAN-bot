@@ -72,3 +72,10 @@ Enable it in cron with (crontab -e as the netkan user):
 
 There is a 'lite' cli option is not implemented. It's a future concept to allow 'lite' 
 skimming of metadata API endpoints without performing a full metadata inflation.
+
+License
+=======
+
+Dist::Zilla handles the generation of the license file.
+
+However this project is covered by The MIT License (MIT)
