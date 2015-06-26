@@ -70,4 +70,5 @@ Enable it in cron with (crontab -e as the netkan user):
 00 */3 * * * PERL5LIB=/home/netkan/perl5/lib/perl5/ netkan-indexer
 ```
 
-Currently 'lite' is not implemented.
+There is a 'lite' cli option is not implemented. It's a future concept to allow 'lite' 
+skimming of metadata API endpoints without performing a full metadata inflation.
