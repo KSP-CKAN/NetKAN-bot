@@ -11,6 +11,7 @@ use File::Basename qw(basename);
 use File::Path qw(mkpath);
 use Capture::Tiny qw(capture);
 use Scalar::Util::Reftype;
+use Carp qw(croak);
 use Moo;
 use namespace::clean;
 
@@ -80,6 +81,7 @@ method _build__cli {
 
 method _check_lite {
   # TODO: Build a method to go and check if required full inflate
+  croak("_check_lite is unimplimented");
   return 0;
 }
 
