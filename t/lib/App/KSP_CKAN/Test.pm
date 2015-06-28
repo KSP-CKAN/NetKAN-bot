@@ -6,7 +6,7 @@ use warnings;
 use autodie;
 use Method::Signatures 20140224;
 use Try::Tiny;
-use File::Spec 'tmpdir';
+use File::Temp qw(tempdir);
 use File::Path qw(remove_tree mkpath);
 use File::chdir;
 use File::Copy::Recursive qw(dircopy dirmove);
@@ -35,16 +35,10 @@ has 'tmp'     => ( is => 'ro', lazy => 1, builder => 1 );
 has '_tmp'    => ( is => 'ro', lazy => 1, builder => 1 );
 
 method _build_tmp {
-  return File::Spec->tmpdir()."/KSP_CKAN-test";
+  return File::Temp::tempdir();
 }
 
 method _build__tmp {
-  # We don't want stale test data
-  if ( -d $self->tmp ) {
-    remove_tree($self->tmp);
-  }
-  mkpath($self->tmp);
-
   # Populate our test data
   dircopy("t/data", $self->tmp."/data");
 
