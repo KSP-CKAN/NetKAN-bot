@@ -7,7 +7,7 @@ use warnings;
 use Test::Most;
 use Test::Warnings;
 use File::chdir;
-use File::Path qw(mkpath);
+use File::Path qw(mkpath remove_tree);
 use App::KSP_CKAN::Test;
 
 # Setup our environment
@@ -106,6 +106,31 @@ is(-e $test->tmp."/CKAN-meta/test_pull.ckan", 1, "Pull successful");
 unlink($test->tmp."/CKAN-meta/test_file.ckan");
 $git->add;
 is($git->changed, 2, "File delete not commited");
+
+subtest 'Git Errors' => sub {
+  my $remote_error = App::KSP_CKAN::Tools::Git->new(
+    remote => $test->tmp."/data/CKAN-meta",
+    working => "remote-error",
+    local => $test->tmp,
+    clean => 1,
+  );
+  $remote_error->pull;
+  $test->create_ckan( $test->tmp."/remote-error/test_push.ckan" );
+  $remote_error->add;
+  $remote_error->commit(all => 1);
+  {
+    local $CWD = $test->tmp;
+    remove_tree( "remote-error/" );
+  }
+  dies_ok { $remote_error->push } "Remote issue fails loudly";
+
+  my $path_error = App::KSP_CKAN::Tools::Git->new(
+    remote => $test->tmp."/data/non_existent_repo",
+    local => $test->tmp,
+    clean => 1,
+  );
+  dies_ok { $path_error->pull } 'Non existent repo fails loudly';
+};
 
 # Cleanup after ourselves
 $test->cleanup;
