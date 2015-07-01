@@ -3,7 +3,7 @@ package App::KSP_CKAN::Tools::Git;
 use v5.010;
 use strict;
 use warnings;
-use autodie;
+use autodie qw(:all);
 use Method::Signatures 20140224;
 use Carp qw(croak);
 use Try::Tiny;
