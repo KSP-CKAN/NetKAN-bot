@@ -32,15 +32,15 @@ my $netkan_git = App::KSP_CKAN::Tools::Git->new(
 );
 $netkan_git->pull;
 
-# netkan.exe
-my $http = App::KSP_CKAN::Tools::Http->new();
-$http->mirror( url => "http://ci.ksp-ckan.org:8080/job/NetKAN/lastSuccessfulBuild/artifact/netkan.exe", path => $test->tmp."/netkan.exe", exe => 1);
-
 # Config
 $test->create_config(nogh => 1);
 my $config = App::KSP_CKAN::Tools::Config->new(
   file => $test->tmp."/.ksp-ckan",
 );
+
+# netkan.exe
+my $http = App::KSP_CKAN::Tools::Http->new();
+$http->mirror( url => $config->netkan_exe, path => $test->tmp."/netkan.exe", exe => 1);
 
 use_ok("App::KSP_CKAN::Tools::NetKAN");
 my $netkan = App::KSP_CKAN::Tools::NetKAN->new(
