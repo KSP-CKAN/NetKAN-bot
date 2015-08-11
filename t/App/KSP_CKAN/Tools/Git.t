@@ -48,6 +48,8 @@ $git->_clean;
 isnt($test->tmp."/CKAN-meta", 1, "Clean was successful");
 
 # Test our clone
+# Git gives benign 'warning: --depth is ignored in local clones; use file:// instead.'
+# Local pulls don't honor depth, but we're only testing that we can clone.
 isa_ok($git->_git, "Git::Wrapper");
 is(-e $test->tmp."/CKAN-meta/README.md", 1, "Cloned successfully");
 
