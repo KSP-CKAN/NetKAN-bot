@@ -53,7 +53,7 @@ my $netkan = App::KSP_CKAN::Tools::NetKAN->new(
 
 # TODO: Fix this on travis.
 TODO: {
-  local $TODO = "This appears to broken on travis", 4 if $ENV{TRAVIS};
+  local $TODO = "This appears to broken on travis" if $ENV{TRAVIS};
   is( $netkan->inflate, 0, "Return success correctly" );
 
   my @files = glob($test->tmp."/CKAN-meta/DogeCoinFlag");
@@ -69,6 +69,40 @@ TODO: {
   isnt( $netkan->inflate, 0, "Return failure correctly" );
 }
 
+# Test Error Parsing
+is (
+  $netkan->_parse_error("8194 [1] FATAL CKAN.NetKAN.Program (null) - Could not find CrowdSourcedScience directory in zipfile to install"),
+  "Could not find CrowdSourcedScience directory in zipfile to install",
+  "Zipfile Error Parsing Success"
+);
+
+is (
+  $netkan->_parse_error("2142 [1] FATAL CKAN.NetKAN.Program (null) - JSON deserialization error"),
+  "JSON deserialization error",
+  "JSON Error Parsing Success"
+);
+
+is (
+  $netkan->_parse_error("No error"),
+  undef,
+  "Return undef when no error parsed"
+);
+
+my $error = <<EOF;
+Unhandled Exception:
+CKAN.Kraken: Cannot find remote and ID in kref: http://dl.dropboxusercontent.com/u/7121093/ksp-mods/KSP%5B1.0.2%5DWasdEditorCamera%5BMay20%5D.zip
+  at CKAN.NetKAN.MainClass.FindRemote (Newtonsoft.Json.Linq.JObject json) [0x00000] in <filename unknown>:0 
+  at CKAN.NetKAN.MainClass.Main (System.String[] args) [0x00000] in <filename unknown>:0 
+[ERROR] FATAL UNHANDLED EXCEPTION: CKAN.Kraken: Cannot find remote and ID in kref: http://dl.dropboxusercontent.com/u/7121093/ksp-mods/KSP%5B1.0.2%5DWasdEditorCamera%5BMay20%5D.zip
+  at CKAN.NetKAN.MainClass.FindRemote (Newtonsoft.Json.Linq.JObject json) [0x00000] in <filename unknown>:0 
+  at CKAN.NetKAN.MainClass.Main (System.String[] args) [0x00000] in <filename unknown>:0 
+EOF
+
+is (
+  $netkan->_parse_error( $error ),
+  "FATAL UNHANDLED EXCEPTION: CKAN.Kraken: Cannot find remote and ID in kref: http://dl.dropboxusercontent.com/u/7121093/ksp-mods/KSP%5B1.0.2%5DWasdEditorCamera%5BMay20%5D.zip",
+  "Generic Error Parsing Success"
+);
 ok( -d $test->tmp."/cache", "NetKAN Cache path set correctly");
 
 # Cleanup after ourselves
