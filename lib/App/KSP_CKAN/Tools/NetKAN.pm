@@ -86,8 +86,15 @@ method _check_lite {
 }
 
 method _parse_error($error) {
-  $error =~ m{^\[ERROR\].(.+)}m;
-  return $1;
+  my $return;
+  if ($error =~ /^\d+.\[\d+\].FATAL/) {
+    $error =~ m{FATAL.+.-.(.+)};
+    $return = $1;
+  } else {
+    $error =~ m{^\[ERROR\].(.+)}m;
+    $return = $1;
+  }
+  return $return;
 }
 
 =method inflate
@@ -109,7 +116,7 @@ method inflate {
   };
 
   if ($exit) {                                                                                                         
-    my $error = $self->_parse_error($stdout) || "' - Error wasn't parsable";                                           
+    my $error = $self->_parse_error($stdout) || "Error wasn't parsable"; 
     $self->warn("'".$self->file."' - ".$error); 
   } 
 
