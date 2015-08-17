@@ -82,6 +82,12 @@ is (
   "JSON Error Parsing Success"
 );
 
+is (
+  $netkan->_parse_error("No error"),
+  undef,
+  "Return undef when no error parsed"
+);
+
 my $error = <<EOF;
 Unhandled Exception:
 CKAN.Kraken: Cannot find remote and ID in kref: http://dl.dropboxusercontent.com/u/7121093/ksp-mods/KSP%5B1.0.2%5DWasdEditorCamera%5BMay20%5D.zip
