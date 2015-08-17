@@ -53,7 +53,7 @@ my $netkan = App::KSP_CKAN::Tools::NetKAN->new(
 
 # TODO: Fix this on travis.
 TODO: {
-  local $TODO = "This appears to broken on travis", 4 if $ENV{TRAVIS};
+  local $TODO = "This appears to broken on travis" if $ENV{TRAVIS};
   is( $netkan->inflate, 0, "Return success correctly" );
 
   my @files = glob($test->tmp."/CKAN-meta/DogeCoinFlag");
