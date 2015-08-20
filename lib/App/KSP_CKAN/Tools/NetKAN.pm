@@ -54,6 +54,7 @@ has 'rescan'    => ( is => 'ro', default => sub { 1 } );
 has '_output'   => ( is => 'ro', lazy => 1, builder => 1 );
 has '_cli'      => ( is => 'ro', lazy => 1, builder => 1 );
 has '_cache'    => ( is => 'ro', lazy => 1, builder => 1 );
+has '_basename' => ( is => 'ro', lazy => 1, builder => 1 );
 
 method _build__cache {
   if ( ! -d $self->cache ) {
@@ -63,12 +64,15 @@ method _build__cache {
   return $self->cache;
 }
 
+method _build__basename {
+  return basename($self->file,  ".netkan");
+}
+
 method _build__output {
-  my $basename = basename($self->file,  ".netkan");
-  if (! -d $self->ckan_meta."/".$basename ) {
-    mkdir $self->ckan_meta."/".$basename;
+  if (! -d $self->ckan_meta."/".$self->_basename ) {
+    mkdir $self->ckan_meta."/".$self->_basename;
   }
-  return $self->ckan_meta."/".$basename;
+  return $self->ckan_meta."/".$self->_basename;
 }
 
 method _build__cli {
