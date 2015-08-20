@@ -42,21 +42,26 @@ data and only run the inflater when required.
 =cut
 
 my $Ref = sub {
-  croak("auth isn't a 'App::KSP_CKAN::Tools::Config' object!") unless reftype( $_[0] )->class eq "App::KSP_CKAN::Tools::Config";
+  croak("config isn't a 'App::KSP_CKAN::Tools::Config' object!") unless $_[0]->DOES("App::KSP_CKAN::Tools::Config");
 };
 
-has 'config'      => ( is => 'ro', required => 1, isa => $Ref );
-has 'netkan'    => ( is => 'ro', required => 1 );
-has 'cache'     => ( is => 'ro', default => sub { File::Spec->tmpdir()."/NetKAN-cache"; } );
-has 'file'      => ( is => 'ro', required => 1);
-has 'ckan_meta' => ( is => 'ro', required => 1 );
-has 'token'     => ( is => 'ro' );
-has 'rescan'    => ( is => 'ro', default => sub { 1 } );
-has '_output'   => ( is => 'ro', lazy => 1, builder => 1 );
-has '_cli'      => ( is => 'ro', lazy => 1, builder => 1 );
-has '_cache'    => ( is => 'ro', lazy => 1, builder => 1 );
-has '_basename' => ( is => 'ro', lazy => 1, builder => 1 );
-has '_md5'      => ( is => 'ro', lazy => 1, builder => 1 );
+my $Meta = sub {
+  croak("ckan-meta isn't a 'App::KSP_CKAN::Tools::Git' object!") unless $_[0]->DOES("App::KSP_CKAN::Tools::Git");
+};
+
+has 'config'              => ( is => 'ro', required => 1, isa => $Ref );
+has 'netkan'              => ( is => 'ro', required => 1 );
+has 'cache'               => ( is => 'ro', default => sub { File::Spec->tmpdir()."/NetKAN-cache"; } );
+has 'file'                => ( is => 'ro', required => 1 );
+has 'ckan_meta'           => ( is => 'ro', required => 1, isa => $Meta );
+has 'token'               => ( is => 'ro' );
+has 'rescan'              => ( is => 'ro', default => sub { 1 } );
+has '_ckan_meta_working'  => ( is => 'ro', lazy => 1, builder => 1 );
+has '_output'             => ( is => 'ro', lazy => 1, builder => 1 );
+has '_cli'                => ( is => 'ro', lazy => 1, builder => 1 );
+has '_cache'              => ( is => 'ro', lazy => 1, builder => 1 );
+has '_basename'           => ( is => 'ro', lazy => 1, builder => 1 );
+has '_md5'                => ( is => 'ro', lazy => 1, builder => 1 );
 
 method _build__cache {
   if ( ! -d $self->cache ) {
@@ -70,11 +75,15 @@ method _build__basename {
   return basename($self->file,  ".netkan");
 }
 
+method _build__ckan_meta_working {
+  return $self->config->working."/".$self->ckan_meta->working;
+}
+
 method _build__output {
-  if (! -d $self->ckan_meta."/".$self->_basename ) {
-    mkdir $self->ckan_meta."/".$self->_basename;
+  if (! -d $self->_ckan_meta_working."/".$self->_basename ) {
+    mkdir $self->_ckan_meta_working."/".$self->_basename;
   }
-  return $self->ckan_meta."/".$self->_basename;
+  return $self->_ckan_meta_working."/".$self->_basename;
 }
 
 method _build__cli {
