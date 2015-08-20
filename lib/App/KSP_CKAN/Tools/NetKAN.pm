@@ -142,10 +142,10 @@ method inflate {
     system($self->_cli);
   };
 
-  if ($exit) {                                                                                                         
+  if ($exit) { 
     my $error = $self->_parse_error($stdout) || "Error wasn't parsable"; 
     $self->warn("'".$self->file."' - ".$error); 
-  } 
+  }
 
   return $exit;
 }
