@@ -87,7 +87,7 @@ method _inflate_all(:$rescan = 1) {
       cache => $self->config->working."/cache",
       token => $self->config->GH_token,
       file => $file,
-      ckan_meta => $self->config->working."/".$self->_CKAN_meta->working,
+      ckan_meta => $self->_CKAN_meta,
       rescan => $rescan,
     );
     $netkan->inflate;
