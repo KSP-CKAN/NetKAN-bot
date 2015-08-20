@@ -11,7 +11,7 @@ use File::Basename qw(basename);
 use File::Path qw(mkpath);
 use Capture::Tiny qw(capture);
 use Digest::MD5::File qw(dir_md5_hex);
-use Scalar::Util::Reftype;
+use File::Find::Age;
 use Carp qw(croak);
 use Moo;
 use namespace::clean;
@@ -100,6 +100,10 @@ method _build__md5 {
 
 method _output_md5 {
   return $self->_md5->hexdigest;
+}
+
+method _newest_file {
+  return pop(File::Find::Age->in($self->_output))->{file};
 }
 
 method _check_lite {
