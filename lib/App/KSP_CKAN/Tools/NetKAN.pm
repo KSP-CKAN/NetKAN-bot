@@ -10,6 +10,7 @@ use File::Spec 'tmpdir';
 use File::Basename qw(basename);
 use File::Path qw(mkpath);
 use Capture::Tiny qw(capture);
+use Digest::MD5::File qw(dir_md5_hex);
 use Scalar::Util::Reftype;
 use Carp qw(croak);
 use Moo;
@@ -55,6 +56,7 @@ has '_output'   => ( is => 'ro', lazy => 1, builder => 1 );
 has '_cli'      => ( is => 'ro', lazy => 1, builder => 1 );
 has '_cache'    => ( is => 'ro', lazy => 1, builder => 1 );
 has '_basename' => ( is => 'ro', lazy => 1, builder => 1 );
+has '_md5'      => ( is => 'ro', lazy => 1, builder => 1 );
 
 method _build__cache {
   if ( ! -d $self->cache ) {
@@ -81,6 +83,14 @@ method _build__cli {
   } else {
     return $self->netkan." --outputdir=".$self->_output." --cachedir=".$self->_cache." ".$self->file;
   }
+}
+
+method _build__md5 {
+  return Digest::MD5->new->addir($self->_output);
+}
+
+method _output_md5 {
+  return $self->_md5->hexdigest;
 }
 
 method _check_lite {
