@@ -61,7 +61,6 @@ has '_output'             => ( is => 'ro', lazy => 1, builder => 1 );
 has '_cli'                => ( is => 'ro', lazy => 1, builder => 1 );
 has '_cache'              => ( is => 'ro', lazy => 1, builder => 1 );
 has '_basename'           => ( is => 'ro', lazy => 1, builder => 1 );
-has '_md5'                => ( is => 'ro', lazy => 1, builder => 1 );
 
 method _build__cache {
   if ( ! -d $self->cache ) {
@@ -94,12 +93,10 @@ method _build__cli {
   }
 }
 
-method _build__md5 {
-  return Digest::MD5->new->addir($self->_output);
-}
-
 method _output_md5 {
-  return $self->_md5->hexdigest;
+  my $md5 = Digest::MD5->new();
+  $md5->adddir($self->_output);
+  return $md5->hexdigest;
 }
 
 method _newest_file {
