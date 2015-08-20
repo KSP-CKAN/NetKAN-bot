@@ -28,8 +28,6 @@ my $ckan = App::KSP_CKAN::Tools::Git->new(
   clean => 1,
 );
 $ckan->pull;
-my $does = $ckan->DOES("App::KSP_CKAN::Tools::Git'");
-print $does."\n";
 
 # Netkan
 $test->create_repo("NetKAN");
@@ -56,10 +54,15 @@ my $netkan = App::KSP_CKAN::Tools::NetKAN->new(
 # TODO: Fix this on travis.
 TODO: {
   local $TODO = "This appears to broken on travis" if $ENV{TRAVIS};
+  
+  my $md5 = $netkan->_output_md5;
+  isnt($md5, undef, "MD5 '$md5' generated");
   is( $netkan->inflate, 0, "Return success correctly" );
+  isnt($md5, $netkan->_output_md5, "MD5 Hash updated when new file generated");
 
-  my @files = glob($config->working."/CKAN-meta/DogeCoinFlag");
+  my @files = glob($config->working."/CKAN-meta/DogeCoinFlag/*");
   is( -e $files[0], 1, "Meta Data inflated" );
+  is( $files[0], $netkan->_newest_file, "'".$netkan->_newest_file."' returned as the newest file");
   
   $netkan = App::KSP_CKAN::Tools::NetKAN->new( 
     config    => $config, 
