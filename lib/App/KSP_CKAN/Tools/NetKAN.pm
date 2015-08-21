@@ -99,6 +99,10 @@ method _output_md5 {
   return $md5->hexdigest;
 }
 
+# Short of hashing every file individually (including
+# ones that may not have existed before) we have no
+# real way to derive what changed from NetKAN, but the
+# Filesystem is kind enough to tell us.
 method _newest_file {
   return pop(File::Find::Age->in($self->_output))->{file};
 }
@@ -149,7 +153,11 @@ method inflate {
   if (! $self->rescan ) {
     return;
   }
-  
+
+  # We won't know if NetKAN actually made a change and
+  # it doesn't know either, it just produces a ckan file.
+  # This gives us a hash of all files in the directory
+  # before we inflate to compare afterwards.
   my $md5 = $self->_output_md5;
 
   $self->debug("Inflating ".$self->file);
