@@ -40,7 +40,9 @@ $netkan_git->pull;
 
 # netkan.exe
 my $http = App::KSP_CKAN::Tools::Http->new();
-$http->mirror( url => $config->netkan_exe, path => $test->tmp."/netkan.exe", exe => 1);
+$http->mirror( url => $config->netkan_exe, path => $test->tmp."/netkan.exe", exe => 1 );
+$http->mirror( url => $config->ckan_validate, path => $config->working."/ckan-validate.py", exe => 1 );
+$http->mirror( url => $config->ckan_schema, path => $config->working."/CKAN.schema" );
 
 use_ok("App::KSP_CKAN::Tools::NetKAN");
 my $netkan = App::KSP_CKAN::Tools::NetKAN->new(
