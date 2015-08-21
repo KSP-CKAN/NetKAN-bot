@@ -129,8 +129,12 @@ This method will perform a 'git add .'
 
 # TODO: It'd probably be nice to allow a list of 
 # files
-method add {
-  $self->_git->add(".");
+method add($file?) {
+  if ($file) {
+    $self->_git->add($file);
+  } else {
+    $self->_git->add(".");
+  }
   return;
 }
 

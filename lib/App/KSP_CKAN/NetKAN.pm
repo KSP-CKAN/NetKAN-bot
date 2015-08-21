@@ -95,24 +95,7 @@ method _inflate_all(:$rescan = 1) {
   return;
 }
 
-method _commit {
-  $self->_CKAN_meta->add;
-  my @changes = $self->_CKAN_meta->changed;
-
-  foreach my $changed (@changes) {
-    my $file = $self->config->working."/".$self->_CKAN_meta->working."/".$changed;
-    if ( $self->validate($file) ) {
-      $self->warn("Failed to Parse $changed");
-      $self->_CKAN_meta->reset(file => $file);
-    }
-    else {
-      $self->info("Commiting $changed");
-      $self->_CKAN_meta->commit(
-        file => $file,
-        message => "NetKAN generated mods - $changed",
-      );
-    }
-  }
+method _push {
   $self->_CKAN_meta->pull(ours => 1);
   $self->_CKAN_meta->push;
   return;
@@ -128,7 +111,7 @@ it into CKAN-meta (or whichever repository is configured)
 method full_index {
   $self->_mirror_files;
   $self->_inflate_all;
-  $self->_commit;
+  $self->_push;
   return;
 }
 
@@ -149,6 +132,6 @@ method lite_index {
   return;
 }
 
-with('App::KSP_CKAN::Roles::Logger','App::KSP_CKAN::Roles::Validate');
+with('App::KSP_CKAN::Roles::Logger');
 
 1;

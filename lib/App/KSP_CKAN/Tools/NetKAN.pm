@@ -118,7 +118,23 @@ method _parse_error($error) {
     $error =~ m{^\[ERROR\].(.+)}m;
     $return = $1;
   }
-  return $return;
+  return $return || "Error wasn't parsable";
+}
+
+method _commit($file) {
+  $self->ckan_meta->add($file);
+  my $changed = basename($file,  ".ckan");
+  if ( $self->validate($file) ) {
+    $self->warn("Failed to Parse $changed");
+    $self->ckan_meta->reset(file => $file);
+  }
+  else {
+    $self->info("Commiting $changed");
+    $self->ckan_meta->commit(
+      file => $file,
+      message => "NetKAN generated mods - $changed",
+    );
+  }
 }
 
 =method inflate
@@ -133,6 +149,8 @@ method inflate {
   if (! $self->rescan ) {
     return;
   }
+  
+  my $md5 = $self->_output_md5;
 
   $self->debug("Inflating ".$self->file);
   my ($stderr, $stdout, $exit) = capture { 
@@ -140,13 +158,17 @@ method inflate {
   };
 
   if ($exit) { 
-    my $error = $self->_parse_error($stdout) || "Error wasn't parsable"; 
+    my $error = $self->_parse_error($stdout); 
     $self->warn("'".$self->file."' - ".$error); 
+  }
+
+  if ($md5 ne $self->_output_md5) {
+    $self->_commit($self->_newest_file);
   }
 
   return $exit;
 }
 
-with('App::KSP_CKAN::Roles::Logger');
+with('App::KSP_CKAN::Roles::Logger','App::KSP_CKAN::Roles::Validate');
 
 1;
