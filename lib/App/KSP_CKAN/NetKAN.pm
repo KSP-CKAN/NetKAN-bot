@@ -72,6 +72,19 @@ method _mirror_files {
     exe => 1,
   );
 
+  # ckan-validate.py
+  $self->_http->mirror(
+    url => $self->config->ckan_validate,
+    path => $self->config->working."/ckan-validate.py",
+    exe => 1,
+  );
+
+  # CKAN.schema
+  $self->_http->mirror(
+    url => $self->config->ckan_schema,
+    path => $self->config->working."/CKAN.schema",
+  );
+
   return;
 }
 
