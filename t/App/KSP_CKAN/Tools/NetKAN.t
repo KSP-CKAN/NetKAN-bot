@@ -74,6 +74,18 @@ TODO: {
   isnt( $netkan->inflate, 0, "Return failure correctly" );
 }
 
+# Test file validation
+$test->create_ckan( $config->working."/CKAN-meta/test_file.ckan" );
+$netkan->_commit( $config->working."/CKAN-meta/test_file.ckan" );
+is($netkan->ckan_meta->changed(origin => 0), 0, "Commit validated file successful");
+$netkan->ckan_meta->push;
+is($netkan->ckan_meta->changed, 0, "Changes pushed repository" );
+$test->create_ckan( $config->working."/CKAN-meta/test_file2.ckan", 0 );
+$netkan->_commit( $config->working."/CKAN-meta/test_file2.ckan" );
+is( $netkan->ckan_meta->changed, 0, "broken metadata was not committed" );
+$netkan->ckan_meta->add;
+is( $netkan->ckan_meta->changed, 1, "broken metadata does actually exist" );
+
 # Test Error Parsing
 is (
   $netkan->_parse_error("8194 [1] FATAL CKAN.NetKAN.Program (null) - Could not find CrowdSourcedScience directory in zipfile to install"),
