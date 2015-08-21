@@ -19,29 +19,13 @@ use Moo::Role;
 
 =head1 DESCRIPTION
 
-Currently lightly wraps ckan_validate.py
+Currently lightly wraps ckan_validate.py. Requires ckan_validate.py
+and CKAN.schema be in '$config->working'. Also requires consuming
+class to have the Logger role.
 
 =cut
 
-requires '_http', 'config', '_mirror_files', 'warn';
-
-after _mirror_files => sub {
-  my $self = shift;
-
-  # ckan-validate.py
-  $self->_http->mirror( 
-    url => $self->config->ckan_validate,
-    path => $self->config->working."/ckan-validate.py",
-    exe => 1,
-  );
-
-  # CKAN.schema
-  $self->_http->mirror( 
-    url => $self->config->ckan_schema,
-    path => $self->config->working."/CKAN.schema",
-    exe => 1,
-  );
-};
+requires 'config', 'warn';
 
 =method validate
 
