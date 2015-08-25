@@ -26,10 +26,16 @@ my $status = App::KSP_CKAN::Status->new(
 
 my $netkan = $status->get_status("TestKAN");
 is($netkan->DOES("App::KSP_CKAN::Status::NetKAN"), 1, "App::KSP_CKAN::Status::NetKAN Object returned");
-$netkan->update;
-my $updated = $netkan->last_updated;
 
+# Set our initial states
+$netkan->inflated;
+$netkan->indexed;
+$netkan->checked;
+my $inflated = $netkan->last_inflated;
+my $indexed = $netkan->last_indexed;
+my $checked = $netkan->last_checked;
 $status->write_json;
+
 is(-e $status->_status_file, 1, "Status file written");
 
 $status = App::KSP_CKAN::Status->new(
@@ -37,12 +43,24 @@ $status = App::KSP_CKAN::Status->new(
 );
 
 $netkan = $status->get_status("TestKAN");
-is($netkan->last_updated, $updated, "Data persists between file loads");
+is($netkan->last_inflated, $inflated, "Data persists between file loads");
 
 # Test runs too fast for the time to be different
 set_relative_time(10);
-$netkan->update;
-isnt($netkan->last_updated, $updated, "Last updated changes value");
+$netkan->inflated;
+$netkan->indexed;
+$netkan->checked;
+isnt($netkan->last_inflated, $inflated, "Last inflated changes value");
+isnt($netkan->last_indexed, $indexed, "Last indexed changes value");
+isnt($netkan->last_checked, $checked, "Last checked changes value");
+
+$netkan->failure("Test");
+is($netkan->last_error, "Test", "Last error set correctly");
+is($netkan->failed, 1, "Failed set correctly");
+
+$netkan->success;
+is($netkan->last_error, undef, "Last cleared correctly");
+is($netkan->failed, 0, "Failed set correctly");
 
 $test->cleanup;
 
