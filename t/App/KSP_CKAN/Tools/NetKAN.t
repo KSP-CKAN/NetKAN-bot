@@ -92,31 +92,34 @@ subtest 'Status Setting' => sub {
 };
 
 # Test file validation
-$test->create_ckan( $config->working."/CKAN-meta/test_file.ckan" );
-$netkan->_commit( $config->working."/CKAN-meta/test_file.ckan" );
-is($netkan->ckan_meta->changed(origin => 0), 0, "Commit validated file successful");
-$netkan->ckan_meta->push;
-is($netkan->ckan_meta->changed, 0, "Changes pushed repository" );
-$test->create_ckan( $config->working."/CKAN-meta/test_file2.ckan", 0 );
-$netkan->_commit( $config->working."/CKAN-meta/test_file2.ckan" );
-is( $netkan->ckan_meta->changed, 0, "broken metadata was not committed" );
-$netkan->ckan_meta->add;
-is( $netkan->ckan_meta->changed, 1, "broken metadata does actually exist" );
+subtest 'File Validation' => sub {
+  $test->create_ckan( $config->working."/CKAN-meta/test_file.ckan" );
+  $netkan->_commit( $config->working."/CKAN-meta/test_file.ckan" );
+  is($netkan->ckan_meta->changed(origin => 0), 0, "Commit validated file successful");
+  $netkan->ckan_meta->push;
+  is($netkan->ckan_meta->changed, 0, "Changes pushed repository" );
+  $test->create_ckan( $config->working."/CKAN-meta/test_file2.ckan", 0 );
+  $netkan->_commit( $config->working."/CKAN-meta/test_file2.ckan" );
+  is( $netkan->ckan_meta->changed, 0, "broken metadata was not committed" );
+  $netkan->ckan_meta->add;
+  is( $netkan->ckan_meta->changed, 1, "broken metadata does actually exist" );
+};
 
 # Test Error Parsing
-is (
-  $netkan->_parse_error("8194 [1] FATAL CKAN.NetKAN.Program (null) - Could not find CrowdSourcedScience directory in zipfile to install"),
-  "Could not find CrowdSourcedScience directory in zipfile to install",
-  "Zipfile Error Parsing Success"
-);
-
-is (
-  $netkan->_parse_error("2142 [1] FATAL CKAN.NetKAN.Program (null) - JSON deserialization error"),
-  "JSON deserialization error",
-  "JSON Error Parsing Success"
-);
-
-my $error = <<EOF;
+subtest 'Error Parsing' => sub {
+  is (
+    $netkan->_parse_error("8194 [1] FATAL CKAN.NetKAN.Program (null) - Could not find CrowdSourcedScience directory in zipfile to install"),
+    "Could not find CrowdSourcedScience directory in zipfile to install",
+    "Zipfile Error Parsing Success"
+  );
+  
+  is (
+    $netkan->_parse_error("2142 [1] FATAL CKAN.NetKAN.Program (null) - JSON deserialization error"),
+    "JSON deserialization error",
+    "JSON Error Parsing Success"
+  );
+  
+  my $error = <<EOF;
 Unhandled Exception:
 CKAN.Kraken: Cannot find remote and ID in kref: http://dl.dropboxusercontent.com/u/7121093/ksp-mods/KSP%5B1.0.2%5DWasdEditorCamera%5BMay20%5D.zip
   at CKAN.NetKAN.MainClass.FindRemote (Newtonsoft.Json.Linq.JObject json) [0x00000] in <filename unknown>:0 
@@ -125,19 +128,20 @@ CKAN.Kraken: Cannot find remote and ID in kref: http://dl.dropboxusercontent.com
   at CKAN.NetKAN.MainClass.FindRemote (Newtonsoft.Json.Linq.JObject json) [0x00000] in <filename unknown>:0 
   at CKAN.NetKAN.MainClass.Main (System.String[] args) [0x00000] in <filename unknown>:0 
 EOF
-
-is (
-  $netkan->_parse_error( $error ),
-  "FATAL UNHANDLED EXCEPTION: CKAN.Kraken: Cannot find remote and ID in kref: http://dl.dropboxusercontent.com/u/7121093/ksp-mods/KSP%5B1.0.2%5DWasdEditorCamera%5BMay20%5D.zip",
-  "Generic Error Parsing Success"
-);
-
-is (
-  $netkan->_parse_error( "Cookie Cat Crystal Combo powers... ACTIVATE" ),
-  "Error wasn't parsable",
-  "Receive 'Error wasn't parsable' when none parsed"
-);
   
+  is (
+    $netkan->_parse_error( $error ),
+    "FATAL UNHANDLED EXCEPTION: CKAN.Kraken: Cannot find remote and ID in kref: http://dl.dropboxusercontent.com/u/7121093/ksp-mods/KSP%5B1.0.2%5DWasdEditorCamera%5BMay20%5D.zip",
+    "Generic Error Parsing Success"
+  );
+  
+  is (
+    $netkan->_parse_error( "Cookie Cat Crystal Combo powers... ACTIVATE" ),
+    "Error wasn't parsable",
+    "Receive 'Error wasn't parsable' when none parsed"
+  );
+};
+
 ok( -d $test->tmp."/cache", "NetKAN Cache path set correctly");
 
 # Cleanup after ourselves
