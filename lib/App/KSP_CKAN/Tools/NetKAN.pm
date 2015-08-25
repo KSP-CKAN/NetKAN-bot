@@ -49,11 +49,16 @@ my $Meta = sub {
   croak("ckan-meta isn't a 'App::KSP_CKAN::Tools::Git' object!") unless $_[0]->DOES("App::KSP_CKAN::Tools::Git");
 };
 
+my $Status = sub {
+  croak("status isn't a 'App::KSP_CKAN::Status' object!") unless $_[0]->DOES("App::KSP_CKAN::Status");
+};
+
 has 'config'              => ( is => 'ro', required => 1, isa => $Ref );
 has 'netkan'              => ( is => 'ro', required => 1 );
 has 'cache'               => ( is => 'ro', default => sub { File::Spec->tmpdir()."/NetKAN-cache"; } );
 has 'file'                => ( is => 'ro', required => 1 );
 has 'ckan_meta'           => ( is => 'ro', required => 1, isa => $Meta );
+has 'status'              => ( is => 'rw', required => 1, isa => $Status );
 has 'token'               => ( is => 'ro' );
 has 'rescan'              => ( is => 'ro', default => sub { 1 } );
 has '_ckan_meta_working'  => ( is => 'ro', lazy => 1, builder => 1 );
@@ -61,6 +66,7 @@ has '_output'             => ( is => 'ro', lazy => 1, builder => 1 );
 has '_cli'                => ( is => 'ro', lazy => 1, builder => 1 );
 has '_cache'              => ( is => 'ro', lazy => 1, builder => 1 );
 has '_basename'           => ( is => 'ro', lazy => 1, builder => 1 );
+has '_status'             => ( is => 'rw', lazy => 1, builder => 1 );
 
 method _build__cache {
   if ( ! -d $self->cache ) {
@@ -91,6 +97,10 @@ method _build__cli {
   } else {
     return $self->netkan." --outputdir=".$self->_output." --cachedir=".$self->_cache." ".$self->file;
   }
+}
+
+method _build__status {
+  return $self->status->get_status($self->_basename);
 }
 
 method _output_md5 {
@@ -131,6 +141,8 @@ method _commit($file) {
   if ( $self->validate($file) ) {
     $self->warn("Failed to Parse $changed");
     $self->ckan_meta->reset(file => $file);
+    $self->_status->failure("Schema validation failed");
+    return 1;
   }
   else {
     $self->info("Commiting $changed");
@@ -138,6 +150,8 @@ method _commit($file) {
       file => $file,
       message => "NetKAN generated mods - $changed",
     );
+    $self->_status->indexed;
+    return 0;
   }
 }
 
@@ -150,10 +164,12 @@ Inflates our metadata.
 =cut
 
 method inflate {
+  $self->_status->checked;
+
   if (! $self->rescan ) {
     return;
   }
-
+  
   # We won't know if NetKAN actually made a change and
   # it doesn't know either, it just produces a ckan file.
   # This gives us a hash of all files in the directory
@@ -165,16 +181,21 @@ method inflate {
     system($self->_cli);
   };
 
+  $self->_status->inflated;
+
   if ($exit) { 
     my $error = $self->_parse_error($stdout); 
-    $self->warn("'".$self->file."' - ".$error); 
+    $self->warn("'".$self->file."' - ".$error);
+    $self->_status->failure($error);
+    return $exit;
   }
 
   if ($md5 ne $self->_output_md5) {
-    $self->_commit($self->_newest_file);
+    return $self->_commit($self->_newest_file);
   }
 
-  return $exit;
+  $self->_status->success;
+  return 0;
 }
 
 with('App::KSP_CKAN::Roles::Logger','App::KSP_CKAN::Roles::Validate');
