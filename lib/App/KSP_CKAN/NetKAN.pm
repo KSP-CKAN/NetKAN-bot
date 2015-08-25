@@ -8,6 +8,7 @@ use Method::Signatures 20140224;
 use Scalar::Util::Reftype;
 use File::chdir;
 use Carp qw( croak );
+use App::KSP_CKAN::Status;
 use App::KSP_CKAN::Tools::Http;
 use App::KSP_CKAN::Tools::Git;
 use App::KSP_CKAN::Tools::NetKAN;
@@ -43,6 +44,7 @@ has 'config'      => ( is => 'ro', required => 1, isa => $Ref );
 has '_http'       => ( is => 'ro', lazy => 1, builder => 1 );
 has '_CKAN_meta'  => ( is => 'ro', lazy => 1, builder => 1 );
 has '_NetKAN'     => ( is => 'ro', lazy => 1, builder => 1 );
+has '_status'     => ( is => 'rw', lazy => 1, builder => 1 );
 
 method _build__http {
   return App::KSP_CKAN::Tools::Http->new();
@@ -61,6 +63,12 @@ method _build__NetKAN {
     remote => $self->config->NetKAN,
     local => $self->config->working,
     clean => 1,
+  );
+}
+
+method _build__status {
+  return App::KSP_CKAN::Status->new(
+    config => $self->config,
   );
 }
 
@@ -101,6 +109,7 @@ method _inflate_all(:$rescan = 1) {
       token => $self->config->GH_token,
       file => $file,
       ckan_meta => $self->_CKAN_meta,
+      status => $self->_status,
       rescan => $rescan,
     );
     $netkan->inflate;
@@ -125,6 +134,7 @@ method full_index {
   $self->_mirror_files;
   $self->_inflate_all;
   $self->_push;
+  $self->_status->write_json;
   return;
 }
 
@@ -142,6 +152,7 @@ method lite_index {
   $self->_mirror_files;
   $self->_inflate_all( rescan => 0 );
   $self->_commit;
+  $self->_status->write_json;
   return;
 }
 
