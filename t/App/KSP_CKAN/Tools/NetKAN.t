@@ -10,6 +10,7 @@ use App::KSP_CKAN::Test;
 use App::KSP_CKAN::Tools::Http;
 use App::KSP_CKAN::Tools::Git;
 use App::KSP_CKAN::Tools::Config;
+use App::KSP_CKAN::Status;
 
 ## Setup our environment
 my $test = App::KSP_CKAN::Test->new();
@@ -18,6 +19,10 @@ my $test = App::KSP_CKAN::Test->new();
 $test->create_config(nogh => 1);
 my $config = App::KSP_CKAN::Tools::Config->new(
   file => $test->tmp."/.ksp-ckan",
+);
+
+my $status = App::KSP_CKAN::Status->new(
+  config => $config,
 );
 
 # CKAN-meta
@@ -50,7 +55,8 @@ my $netkan = App::KSP_CKAN::Tools::NetKAN->new(
   netkan    => $test->tmp."/netkan.exe",
   cache     => $test->tmp."/cache", # TODO: Test default cache location
   ckan_meta => $ckan,
-  file => $config->working."/NetKAN/NetKAN/DogeCoinFlag.netkan"
+  status    => $status,
+  file      => $config->working."/NetKAN/NetKAN/DogeCoinFlag.netkan"
 );
 
 # TODO: Fix this on travis.
@@ -71,10 +77,19 @@ TODO: {
     netkan    => $test->tmp."/netkan.exe",
     cache     => $test->tmp."/cache",
     ckan_meta => $ckan,
-    file => $config->working."/NetKAN/NetKAN/DogeCoinFlag-broken.netkan"
+    status    => $status,
+    file      => $config->working."/NetKAN/NetKAN/DogeCoinFlag-broken.netkan"
   );
   isnt( $netkan->inflate, 0, "Return failure correctly" );
 }
+
+subtest 'Status Setting' => sub {
+  is($status->status->{'DogeCoinFlag-broken'}{last_error}, "Error wasn't parsable", "'last_error' set on failure");
+  is($status->status->{'DogeCoinFlag-broken'}{failed}, 1, "'failed' true on failure");
+  is($status->status->{'DogeCoinFlag-broken'}{last_indexed}, undef, "'last_index' undef when no successful indexing has ever occured");
+  is($status->status->{'DogeCoinFlag'}{last_error}, undef, "'last_error' undef on success");
+  is($status->status->{'DogeCoinFlag'}{failed}, 0, "'failed' false on succes");
+};
 
 # Test file validation
 $test->create_ckan( $config->working."/CKAN-meta/test_file.ckan" );
