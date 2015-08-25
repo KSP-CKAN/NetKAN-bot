@@ -29,7 +29,7 @@ use namespace::clean;
 
 =head1 DESCRIPTION
 
-Status object for tracking status of at least intially, NetKAN 
+Status object for tracking status of at least initially, NetKAN 
 indexing.
 
 =cut
