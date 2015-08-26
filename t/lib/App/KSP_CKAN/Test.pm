@@ -10,6 +10,7 @@ use File::Temp qw(tempdir);
 use File::Path qw(remove_tree mkpath);
 use File::chdir;
 use File::Copy::Recursive qw(dircopy dirmove);
+use Capture::Tiny qw(capture);
 use Moo;
 use namespace::clean;
 
@@ -69,12 +70,12 @@ Turns the named repo into a working local remote.
 
 method create_repo($repo) {
   local $CWD = $self->_tmp."/data/$repo";
-  system("git", "init");
-  system("git", "add", "-A");
-  system("git", "commit", "-a", "-m", "Commit ALL THE THINGS!");
+  capture { system("git", "init") }; 
+  capture { system("git", "add", "-A") };
+  capture { system("git", "commit", "-a", "-m", "Commit ALL THE THINGS!") };
   chdir("../");
   dirmove("$repo", "$repo-tmp");
-  system("git", "clone", "--bare", "$repo-tmp", "$repo");
+  capture { system("git", "clone", "--bare", "$repo-tmp", "$repo") };
   return;
 }
 

@@ -8,6 +8,7 @@ use Method::Signatures 20140224;
 use Carp qw(croak);
 use Try::Tiny;
 use Git::Wrapper;
+use Capture::Tiny qw(capture);
 use File::chdir;
 use File::Path qw(remove_tree mkpath);
 use Moo;
@@ -97,11 +98,11 @@ method _build_working {
 
 method _clone {
   # TODO: I think Git::Wrapper has a way to do this natively
-  # TODO: If not, wrap it in a try/catch
+  # TODO: We should pass back success or failure.
   if ($self->shallow) {
-    system("git", "clone", "--depth", "1", $self->remote, $self->local."/".$self->working);
+    capture { system("git", "clone", "--depth", "1", $self->remote, $self->local."/".$self->working) };
   } else {
-    system("git", "clone", $self->remote, $self->local."/".$self->working);
+    capture { system("git", "clone", $self->remote, $self->local."/".$self->working) };
   }
   return;
 }
