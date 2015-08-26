@@ -52,17 +52,17 @@ method _build__http {
 
 method _build__CKAN_meta {
   return App::KSP_CKAN::Tools::Git->new(
-    remote => $self->config->CKAN_meta,
-    local => $self->config->working,
-    clean => 1,
+    remote  => $self->config->CKAN_meta,
+    local   => $self->config->working,
+    clean   => 1,
   );
 }
 
 method _build__NetKAN {
   return App::KSP_CKAN::Tools::Git->new(
-    remote => $self->config->NetKAN,
-    local => $self->config->working,
-    clean => 1,
+    remote  => $self->config->NetKAN,
+    local   => $self->config->working,
+    clean   => 1,
   );
 }
 
@@ -73,24 +73,26 @@ method _build__status {
 }
 
 method _mirror_files {
+  my $config = $self->config;
+
   # netkan.exe
   $self->_http->mirror( 
-    url => $self->config->netkan_exe,
-    path => $self->config->working."/netkan.exe",
-    exe => 1,
+    url   => $config->netkan_exe,
+    path  => $config->working."/netkan.exe",
+    exe   => 1,
   );
 
   # ckan-validate.py
   $self->_http->mirror(
-    url => $self->config->ckan_validate,
-    path => $self->config->working."/ckan-validate.py",
-    exe => 1,
+    url   => $config->ckan_validate,
+    path  => $config->working."/ckan-validate.py",
+    exe   => 1,
   );
 
   # CKAN.schema
   $self->_http->mirror(
-    url => $self->config->ckan_schema,
-    path => $self->config->working."/CKAN.schema",
+    url   => $config->ckan_schema,
+    path  => $config->working."/CKAN.schema",
   );
 
   return;
@@ -102,15 +104,19 @@ method _inflate_all(:$rescan = 1) {
   $self->_NetKAN->pull;
   local $CWD = $self->config->working."/".$self->_NetKAN->working;
   foreach my $file (glob("NetKAN/*.netkan")) {
+
+    # TODO: We're already passing in the config, is it really
+    # necessary to pass in each of the other things as attributes?
+    my $config = $self->config;
     my $netkan = App::KSP_CKAN::Tools::NetKAN->new(
-      config => $self->config,
-      netkan => $self->config->working."/netkan.exe",
-      cache => $self->config->working."/cache",
-      token => $self->config->GH_token,
-      file => $file,
-      ckan_meta => $self->_CKAN_meta,
-      status => $self->_status,
-      rescan => $rescan,
+      config      => $config,
+      netkan      => $config->working."/netkan.exe",
+      cache       => $config->working."/cache",
+      token       => $config->GH_token,
+      file        => $file,
+      ckan_meta   => $self->_CKAN_meta,
+      status      => $self->_status,
+      rescan      => $rescan,
     );
     $netkan->inflate;
   }
