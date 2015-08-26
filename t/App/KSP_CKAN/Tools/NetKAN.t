@@ -61,7 +61,7 @@ my $netkan = App::KSP_CKAN::Tools::NetKAN->new(
 
 # TODO: Fix this on travis.
 TODO: {
-  local $TODO = "This appears to broken on travis" if $ENV{TRAVIS};
+   todo_skip "These tests are broken on travis", 7 if $ENV{TRAVIS};
   
   my $md5 = $netkan->_output_md5;
   isnt($md5, undef, "MD5 '$md5' generated");
@@ -89,6 +89,8 @@ TODO: {
     is($status->status->{'DogeCoinFlag'}{last_error}, undef, "'last_error' undef on success");
     is($status->status->{'DogeCoinFlag'}{failed}, 0, "'failed' false on succes");
   };
+
+  ok( -d $test->tmp."/cache", "NetKAN Cache path set correctly");
 }
 
 # Test file validation
@@ -141,8 +143,6 @@ EOF
     "Receive 'Error wasn't parsable' when none parsed"
   );
 };
-
-ok( -d $test->tmp."/cache", "NetKAN Cache path set correctly");
 
 # Cleanup after ourselves
 $test->cleanup;
