@@ -133,8 +133,10 @@ it into CKAN-meta (or whichever repository is configured)
 method full_index {
   $self->_mirror_files;
   $self->_inflate_all;
-  $self->_push;
-  $self->_status->write_json;
+  if ( ! $self->is_debug() ) {
+    $self->_push;
+    $self->_status->write_json;
+  }
   return;
 }
 
@@ -151,8 +153,10 @@ inflate metadata when required.
 method lite_index {
   $self->_mirror_files;
   $self->_inflate_all( rescan => 0 );
-  $self->_commit;
-  $self->_status->write_json;
+  if ( ! $self->is_debug() ) {
+    $self->_push;
+    $self->_status->write_json;
+  }
   return;
 }
 

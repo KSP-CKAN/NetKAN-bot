@@ -143,8 +143,11 @@ method _commit($file) {
     $self->ckan_meta->reset(file => $file);
     $self->_status->failure("Schema validation failed");
     return 1;
-  }
-  else {
+  } elsif ($self->is_debug()) {
+    $self->debug("$changed would have been commited");
+    $self->ckan_meta->reset(file => $file);
+    return 0;
+  } else {
     $self->info("Commiting $changed");
     $self->ckan_meta->commit(
       file => $file,
