@@ -108,7 +108,6 @@ method failure($reason) {
 # for encode_json
 method TO_JSON {
   my $data = {
-    name          => $self->name,
     last_inflated => $self->last_inflated,
     last_indexed  => $self->last_indexed,
     last_checked  => $self->last_checked,
