@@ -13,7 +13,6 @@ use Capture::Tiny qw(capture);
 use Digest::MD5::File qw(dir_md5_hex);
 use File::Find::Age;
 use Carp qw(croak);
-use experimental 0.013 'autoderef';
 use Moo;
 use namespace::clean;
 
@@ -115,7 +114,7 @@ method _output_md5 {
 # real way to derive what changed from NetKAN, but the
 # Filesystem is kind enough to tell us.
 method _newest_file {
-  return pop(File::Find::Age->in($self->_output))->{file};
+  return File::Find::Age->in($self->_output)->[-1]->{file};
 }
 
 method _check_lite {
