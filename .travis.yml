@@ -19,7 +19,7 @@ install:
   - cpanm --quiet --notest --skip-satisfied Test::Perl::Critic
   - dzil authordeps | grep -vP '[^\w:]' | xargs -n 5 -P 10 cpanm --quiet --notest --skip-satisfied
   - dzil listdeps | grep -vP '[^\w:]' |  xargs -n 5 -P 10 cpanm --quiet --notest --skip-satisfied
-  - cpanm --quite --notest experimental
+  - cpanm --quiet --notest experimental
   - cpanm --quiet --notest Devel::Cover::Report::Coveralls
   - cpanm --quiet --notest Dist::Zilla::App::Command::cover
 script:
