@@ -5,6 +5,7 @@ use strict;
 use warnings;
 use Method::Signatures 20140224;
 use POSIX qw(strftime);
+use JSON;
 use Moo;
 use namespace::clean;
 
