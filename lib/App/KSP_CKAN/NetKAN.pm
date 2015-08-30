@@ -8,6 +8,7 @@ use Method::Signatures 20140224;
 use Scalar::Util::Reftype;
 use File::chdir;
 use Carp qw( croak );
+use App::KSP_CKAN::Status;
 use App::KSP_CKAN::Tools::Http;
 use App::KSP_CKAN::Tools::Git;
 use App::KSP_CKAN::Tools::NetKAN;
@@ -43,6 +44,7 @@ has 'config'      => ( is => 'ro', required => 1, isa => $Ref );
 has '_http'       => ( is => 'ro', lazy => 1, builder => 1 );
 has '_CKAN_meta'  => ( is => 'ro', lazy => 1, builder => 1 );
 has '_NetKAN'     => ( is => 'ro', lazy => 1, builder => 1 );
+has '_status'     => ( is => 'rw', lazy => 1, builder => 1 );
 
 method _build__http {
   return App::KSP_CKAN::Tools::Http->new();
@@ -50,26 +52,47 @@ method _build__http {
 
 method _build__CKAN_meta {
   return App::KSP_CKAN::Tools::Git->new(
-    remote => $self->config->CKAN_meta,
-    local => $self->config->working,
-    clean => 1,
+    remote  => $self->config->CKAN_meta,
+    local   => $self->config->working,
+    clean   => 1,
   );
 }
 
 method _build__NetKAN {
   return App::KSP_CKAN::Tools::Git->new(
-    remote => $self->config->NetKAN,
-    local => $self->config->working,
-    clean => 1,
+    remote  => $self->config->NetKAN,
+    local   => $self->config->working,
+    clean   => 1,
+  );
+}
+
+method _build__status {
+  return App::KSP_CKAN::Status->new(
+    config => $self->config,
   );
 }
 
 method _mirror_files {
+  my $config = $self->config;
+
   # netkan.exe
   $self->_http->mirror( 
-    url => $self->config->netkan_exe,
-    path => $self->config->working."/netkan.exe",
-    exe => 1,
+    url   => $config->netkan_exe,
+    path  => $config->working."/netkan.exe",
+    exe   => 1,
+  );
+
+  # ckan-validate.py
+  $self->_http->mirror(
+    url   => $config->ckan_validate,
+    path  => $config->working."/ckan-validate.py",
+    exe   => 1,
+  );
+
+  # CKAN.schema
+  $self->_http->mirror(
+    url   => $config->ckan_schema,
+    path  => $config->working."/CKAN.schema",
   );
 
   return;
@@ -81,38 +104,26 @@ method _inflate_all(:$rescan = 1) {
   $self->_NetKAN->pull;
   local $CWD = $self->config->working."/".$self->_NetKAN->working;
   foreach my $file (glob("NetKAN/*.netkan")) {
+
+    # TODO: We're already passing in the config, is it really
+    # necessary to pass in each of the other things as attributes?
+    my $config = $self->config;
     my $netkan = App::KSP_CKAN::Tools::NetKAN->new(
-      config => $self->config,
-      netkan => $self->config->working."/netkan.exe",
-      cache => $self->config->working."/cache",
-      token => $self->config->GH_token,
-      file => $file,
-      ckan_meta => $self->config->working."/".$self->_CKAN_meta->working,
-      rescan => $rescan,
+      config      => $config,
+      netkan      => $config->working."/netkan.exe",
+      cache       => $config->working."/cache",
+      token       => $config->GH_token,
+      file        => $file,
+      ckan_meta   => $self->_CKAN_meta,
+      status      => $self->_status,
+      rescan      => $rescan,
     );
     $netkan->inflate;
   }
   return;
 }
 
-method _commit {
-  $self->_CKAN_meta->add;
-  my @changes = $self->_CKAN_meta->changed;
-
-  foreach my $changed (@changes) {
-    my $file = $self->config->working."/".$self->_CKAN_meta->working."/".$changed;
-    if ( $self->validate($file) ) {
-      $self->warn("Failed to Parse $changed");
-      $self->_CKAN_meta->reset(file => $file);
-    }
-    else {
-      $self->info("Commiting $changed");
-      $self->_CKAN_meta->commit(
-        file => $file,
-        message => "NetKAN generated mods - $changed",
-      );
-    }
-  }
+method _push {
   $self->_CKAN_meta->pull(ours => 1);
   $self->_CKAN_meta->push;
   return;
@@ -128,7 +139,10 @@ it into CKAN-meta (or whichever repository is configured)
 method full_index {
   $self->_mirror_files;
   $self->_inflate_all;
-  $self->_commit;
+  if ( ! $self->is_debug() ) {
+    $self->_push;
+    $self->_status->write_json;
+  }
   return;
 }
 
@@ -145,10 +159,13 @@ inflate metadata when required.
 method lite_index {
   $self->_mirror_files;
   $self->_inflate_all( rescan => 0 );
-  $self->_commit;
+  if ( ! $self->is_debug() ) {
+    $self->_push;
+    $self->_status->write_json;
+  }
   return;
 }
 
-with('App::KSP_CKAN::Roles::Logger','App::KSP_CKAN::Roles::Validate');
+with('App::KSP_CKAN::Roles::Logger');
 
 1;

@@ -10,6 +10,7 @@ use File::Temp qw(tempdir);
 use File::Path qw(remove_tree mkpath);
 use File::chdir;
 use File::Copy::Recursive qw(dircopy dirmove);
+use Capture::Tiny qw(capture);
 use Moo;
 use namespace::clean;
 
@@ -69,12 +70,12 @@ Turns the named repo into a working local remote.
 
 method create_repo($repo) {
   local $CWD = $self->_tmp."/data/$repo";
-  system("git", "init");
-  system("git", "add", "-A");
-  system("git", "commit", "-a", "-m", "Commit ALL THE THINGS!");
+  capture { system("git", "init") }; 
+  capture { system("git", "add", "-A") };
+  capture { system("git", "commit", "-a", "-m", "Commit ALL THE THINGS!") };
   chdir("../");
   dirmove("$repo", "$repo-tmp");
-  system("git", "clone", "--bare", "$repo-tmp", "$repo");
+  capture { system("git", "clone", "--bare", "$repo-tmp", "$repo") };
   return;
 }
 
@@ -85,9 +86,16 @@ method create_repo($repo) {
 Creates an example ckan that would pass validation at the specified
 path.
 
+Takes an optional extra argument, that if set to false will create
+a ckan that won't pass schema validation.
+  
+  $test->create_ckan("Path to file", 0);
+
 =cut
 
-method create_ckan($file) {
+method create_ckan($file, $valid = 1) {
+  my $identifier = $valid ? "identifier" : "invalid_schema";
+
   # Lets us generate CKANs that are different.
   # http://www.perlmonks.org/?node_id=233023
   my @chars = ("A".."Z", "a".."z");
@@ -96,7 +104,7 @@ method create_ckan($file) {
 
   # Create the CKAN
   open my $in, '>', $file;
-  print $in qq{ "spec_version": 1, "identifier": "ExampleKAN", "license": "CC-BY-NC-SA", "ksp_version": "0.90", "name": "Example KAN", "abstract": "It's a $rand example!", "author": "Techman83", "version": "1.0.0.1", "download": "https://example.com/example.zip" };
+  print $in qq|{"spec_version": 1, "$identifier": "ExampleKAN", "license": "CC-BY-NC-SA", "ksp_version": "0.90", "name": "Example KAN", "abstract": "It's a $rand example!", "author": "Techman83", "version": "1.0.0.1", "download": "https://example.com/example.zip"}|;
   close $in;
   return;
 }

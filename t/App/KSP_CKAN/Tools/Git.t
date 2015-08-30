@@ -56,7 +56,7 @@ is(-e $test->tmp."/CKAN-meta/README.md", 1, "Cloned successfully");
 # Test adding
 $test->create_ckan( $test->tmp."/CKAN-meta/test_file.ckan" );
 is($git->changed, 0, "No file was added");
-$git->add;
+$git->add($test->tmp."/CKAN-meta/test_file.ckan");
 is($git->changed, 1, "File was added");
 
 # Test Committing a single file
