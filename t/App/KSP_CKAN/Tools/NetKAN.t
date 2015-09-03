@@ -83,7 +83,7 @@ TODO: {
   isnt( $netkan->inflate, 0, "Return failure correctly" );
 
   subtest 'Status Setting' => sub {
-    is($status->status->{'DogeCoinFlag-broken'}{last_error}, "Error wasn't parsable", "'last_error' set on failure");
+    is($status->status->{'DogeCoinFlag-broken'}{last_error}, "JSON deserialization error", "'last_error' set on failure");
     is($status->status->{'DogeCoinFlag-broken'}{failed}, 1, "'failed' true on failure");
     is($status->status->{'DogeCoinFlag-broken'}{last_indexed}, undef, "'last_index' undef when no successful indexing has ever occured");
     is($status->status->{'DogeCoinFlag'}{last_error}, undef, "'last_error' undef on success");
