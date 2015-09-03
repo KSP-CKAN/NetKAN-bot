@@ -187,7 +187,7 @@ method inflate {
   $self->_status->inflated;
 
   if ($exit) { 
-    my $error = $self->_parse_error($stdout); 
+    my $error = $stdout ? $self->_parse_error($stdout) : $self->_parse_error($stderr); 
     $self->warn("'".$self->file."' - ".$error);
     $self->_status->failure($error);
     return $exit;
