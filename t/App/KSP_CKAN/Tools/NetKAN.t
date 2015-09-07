@@ -138,6 +138,12 @@ EOF
   );
   
   is (
+    $netkan->_parse_error("791 [1] WARN CKAN.Curl (null) - Curl environment not pre-initialised, performing non-threadsafe init.\n8194 [1] FATAL CKAN.NetKAN.Program (null) - Could not find CrowdSourcedScience directory in zipfile to install"),
+    "Could not find CrowdSourcedScience directory in zipfile to install",
+    "Mutliline Fatal Success"
+  );
+  
+  is (
     $netkan->_parse_error( "Cookie Cat Crystal Combo powers... ACTIVATE" ),
     "Error wasn't parsable",
     "Receive 'Error wasn't parsable' when none parsed"
