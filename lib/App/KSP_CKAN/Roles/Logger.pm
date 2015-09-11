@@ -32,11 +32,11 @@ my @methods = qw(
 );
 
 has _logger => (
-  is => 'ro',
-  isa => sub { 'Log::Log4perl::Logger' },
-  lazy => 1,
-  builder => 1,
-  handles => \@methods,
+  is        => 'ro',
+  isa       => sub { 'Log::Log4perl::Logger' },
+  lazy      => 1,
+  builder   => 1,
+  handles   => \@methods,
 );
 
 has _log_level  => ( is => 'ro', lazy => 1, builder => 1 );

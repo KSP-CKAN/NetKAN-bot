@@ -5,7 +5,6 @@ use strict;
 use warnings;
 use autodie;
 use Method::Signatures 20140224;
-use Scalar::Util::Reftype;
 use File::chdir;
 use Carp qw( croak );
 use App::KSP_CKAN::Status;
@@ -37,7 +36,7 @@ data and only run the inflater when required.
 =cut
 
 my $Ref = sub {
-  croak("auth isn't a 'App::KSP_CKAN::Tools::Config' object!") unless reftype( $_[0] )->class eq "App::KSP_CKAN::Tools::Config";
+  croak("auth isn't a 'App::KSP_CKAN::Tools::Config' object!") unless $_[0]->DOES("App::KSP_CKAN::Tools::Config");
 };
 
 has 'config'      => ( is => 'ro', required => 1, isa => $Ref );
