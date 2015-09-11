@@ -46,14 +46,14 @@ has '_data'         => ( is => 'ro', lazy => 1, builder => 1 );
 has '_json'         => ( is => 'ro', lazy => 1, builder => 1 );
 
 has 'status' => ( 
-  is => 'rw',
-  handles_via => 'Hash',
-  handles => {
-    get_val => 'get',
-    set_val => 'set',
-    all_keys => 'keys'
+  is            => 'rw',
+  handles_via   => 'Hash',
+  handles       => {
+    get_val   => 'get',
+    set_val   => 'set',
+    all_keys  => 'keys'
   },
-  default => sub { { } }, 
+  default       => sub { { } }, 
 );
 
 method _build__json {
