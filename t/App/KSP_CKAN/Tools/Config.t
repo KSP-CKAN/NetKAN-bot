@@ -26,6 +26,8 @@ is(-d $config->working, 1, "working was automatically created");
 is($config->netkan_exe, "https://ckan-travis.s3.amazonaws.com/netkan.exe", "netkan_exe loaded from config");
 is($config->ckan_validate, "https://raw.githubusercontent.com/KSP-CKAN/CKAN/master/bin/ckan-validate.py", "ckan_validate loaded from config");
 is($config->ckan_schema, "https://raw.githubusercontent.com/KSP-CKAN/CKAN/master/CKAN.schema", "ckan_schema loaded from config");
+is($config->IA_access, "12345678", "IA_access loaded from config");
+is($config->IA_secret, "87654321", "IA_secret loaded from config");
 is($config->debugging, 0, "debug disabled");
 
 $test->create_config( optional => 0 );

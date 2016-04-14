@@ -134,6 +134,8 @@ method create_config(:$optional = 1, :$nogh = 0) {
   print $in "netkan_exe=https://ckan-travis.s3.amazonaws.com/netkan.exe\n";
   print $in "ckan_validate=https://raw.githubusercontent.com/KSP-CKAN/CKAN/master/bin/ckan-validate.py\n";
   print $in "ckan_schema=https://raw.githubusercontent.com/KSP-CKAN/CKAN/master/CKAN.schema\n";
+  print $in "IA_access=12345678\n";
+  print $in "IA_secret=87654321\n";
   
   # TODO: This is a little ugly.
   if ($optional) {
