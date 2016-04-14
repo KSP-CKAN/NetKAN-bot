@@ -160,7 +160,7 @@ method 'CreateURLHash'.
 =cut
 
 method url_hash {
-  if ($self->is_package && $self->download) {
+  if ($self->download) {
     my $hash = sha1_hex($self->download);
     $hash =~ s/-//g;
     return uc(substr $hash, 0, 8);
