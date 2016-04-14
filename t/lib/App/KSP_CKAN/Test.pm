@@ -93,8 +93,17 @@ a ckan that won't pass schema validation.
 
 =cut
 
-method create_ckan($file, $valid = 1) {
+# TODO: Switch to named attributes
+method create_ckan($file, $valid = 1, $kind = "package") {
   my $identifier = $valid ? "identifier" : "invalid_schema";
+
+  # Allows us against a metapackage. TODO: make into valid metapackage
+  my $package;
+  if ( $kind eq "metapackage" ) {
+    $package = '"kind": "metapackage"';
+  } else {
+    $package = '"download": "https://example.com/example.zip"';
+  }
 
   # Lets us generate CKANs that are different.
   # http://www.perlmonks.org/?node_id=233023
@@ -104,7 +113,7 @@ method create_ckan($file, $valid = 1) {
 
   # Create the CKAN
   open my $in, '>', $file;
-  print $in qq|{"spec_version": 1, "$identifier": "ExampleKAN", "license": "CC-BY-NC-SA", "ksp_version": "0.90", "name": "Example KAN", "abstract": "It's a $rand example!", "author": "Techman83", "version": "1.0.0.1", "download": "https://example.com/example.zip"}|;
+  print $in qq|{"spec_version": 1, "$identifier": "ExampleKAN", "license": "CC-BY-NC-SA", "ksp_version": "0.90", "name": "Example KAN", "abstract": "It's a $rand example!", "author": "Techman83", "version": "1.0.0.1", $package}|;
   close $in;
   return;
 }
