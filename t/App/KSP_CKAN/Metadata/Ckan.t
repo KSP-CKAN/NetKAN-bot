@@ -14,7 +14,8 @@ my $test = App::KSP_CKAN::Test->new();
 use_ok("App::KSP_CKAN::Metadata::Ckan");
 $test->create_ckan( file => $test->tmp."/package.ckan" );
 $test->create_ckan( file => $test->tmp."/metapackage.ckan", kind => "metapackage" );
-$test->create_ckan( file => $test->tmp."/no_mirror.ckan", license => "restricted" );
+$test->create_ckan( file => $test->tmp."/no_mirror.ckan", license => "restricted", download => "");
+$test->create_ckan( file => $test->tmp."/hash.ckan", download => "https://github.com/pjf/DogeCoinFlag/releases/download/v1.02/DogeCoinFlag-1.02.zip" );
 
 my $package = App::KSP_CKAN::Metadata::Ckan->new( file => $test->tmp."/package.ckan");
 subtest 'package' => sub {  
@@ -33,10 +34,15 @@ subtest 'metapackage' => sub {
 };
 
 my $no_mirror = App::KSP_CKAN::Metadata::Ckan->new( file => $test->tmp."/no_mirror.ckan" );
-subtest 'can_mirror' => sub {
+my $hash = App::KSP_CKAN::Metadata::Ckan->new( file => $test->tmp."/hash.ckan");
+subtest 'mirror' => sub {
   is($package->can_mirror, 1, "Package can be mirrored");
   is($metapackage->can_mirror, 0, "Meta package can't be mirrored");
   is($no_mirror->can_mirror, 0, "License not explicitly listed for mirroring");
+  is($no_mirror->download, 0, "0 hash returned for blank download link");
+  is($no_mirror->url_hash, 0, "0 hash returned for blank download link");
+  is($metapackage->url_hash, 0, "0 hash returned for metapackage");
+  is($hash->url_hash, "6F8BEBCB", "Hash calculated correctly");
 };
 
 # Cleanup after ourselves

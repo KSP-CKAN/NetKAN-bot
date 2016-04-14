@@ -120,6 +120,7 @@ method create_ckan(
   :$valid = 1, 
   :$kind = "package",
   :$license = "CC-BY-NC-SA",
+  :$download = "https://example.com/example.zip",
 ) {
   my $identifier = $valid ? "identifier" : "invalid_schema";
 
@@ -128,7 +129,7 @@ method create_ckan(
   if ( $kind eq "metapackage" ) {
     $package = '"kind": "metapackage"';
   } else {
-    $package = '"download": "https://example.com/example.zip"';
+    $package = "\"download\": \"$download\"";
   }
 
   # Lets us generate CKANs that are different.

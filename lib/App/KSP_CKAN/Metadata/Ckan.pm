@@ -8,6 +8,7 @@ use Method::Signatures 20140224;
 use Config::JSON; # Saves us from file handling
 use List::MoreUtils 'any';
 use Carp qw( croak );
+use Digest::SHA 'sha1_hex';
 use Moo;
 use namespace::clean;
 
@@ -129,7 +130,7 @@ method is_package {
 
 =method can_mirror
 
-  $ckan->can_mirror.
+  $ckan->can_mirror;
 
 Shortcut method for deciding if the license allows us to mirror it.
 Returns '1' if allowed, '0' if not.
@@ -139,6 +140,24 @@ Returns '1' if allowed, '0' if not.
 method can_mirror {
   if ( (any { $_ eq $self->license } @{$self->_licenses}) && $self->is_package ) {
     return 1;
+  }
+  return 0;
+}
+
+=method url_hash
+
+  $ckan->url_hash;
+  
+Produces a url hash in the same format as the 'NetFileCache.cs' 
+method 'CreateURLHash'.
+
+=cut
+
+method url_hash {
+  if ($self->is_package && $self->download) {
+    my $hash = sha1_hex($self->download);
+    $hash =~ s/-//g;
+    return uc(substr $hash, 0, 8);
   }
   return 0;
 }
