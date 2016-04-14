@@ -65,6 +65,7 @@ Will perform a shallow clone of the repository
 
 has 'remote'    => ( is => 'ro', required => 1 );
 has 'local'     => ( is => 'ro', required => 1 );
+has '_localgit' => ( is => 'ro', lazy => 1, builder => 1 ); # Internal Shortcut for our full Git Path
 has 'working'   => ( is => 'ro', lazy => 1, builder => 1 );
 has 'clean'     => ( is => 'ro', default => sub { 0 } );
 has 'shallow'   => ( is => 'ro', default => sub { 1 } );
@@ -76,12 +77,12 @@ method _build__git {
     mkpath($self->local);
   }
 
-  if ($self->clean) {
-    $self->_clean;
-  }
-
   if ( ! -d $self->local."/".$self->working ) {
     $self->_clone;
+  }
+
+  if ($self->clean) {
+    $self->_clean;
   }
 
   return Git::Wrapper->new({
@@ -108,11 +109,13 @@ method _clone {
 }
 
 method _clean {
-  local $CWD = $self->local;
-  if ( -d $self->working) {
-    remove_tree($self->working);
-  }
-  return;
+  # TODO: We could fail here too, we should return as such.
+  # NOTE: We've not instantiated a git object at this point, so
+  # we can't use it.
+  local $CWD = $self->local."/".$self->working;
+  capture { system("git", "reset", "--hard", "HEAD") };
+  capture { system("git", "clean", "-df") };
+
 }
 
 method _build_branch {

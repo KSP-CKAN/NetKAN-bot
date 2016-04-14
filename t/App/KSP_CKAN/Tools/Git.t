@@ -42,11 +42,6 @@ my $git = App::KSP_CKAN::Tools::Git->new(
 );
 isa_ok($git, "App::KSP_CKAN::Tools::Git");
 
-# Test Cleanup
-mkpath($test->tmp."/CKAN-meta");
-$git->_clean;
-isnt($test->tmp."/CKAN-meta", 1, "Clean was successful");
-
 # Test our clone
 # Git gives benign 'warning: --depth is ignored in local clones; use file:// instead.'
 # Local pulls don't honor depth, but we're only testing that we can clone.
@@ -108,6 +103,11 @@ is(-e $test->tmp."/CKAN-meta/test_pull.ckan", 1, "Pull successful");
 unlink($test->tmp."/CKAN-meta/test_file.ckan");
 $git->add;
 is($git->changed, 2, "File delete not commited");
+
+# Test cleanup
+$test->create_ckan( $test->tmp."/CKAN-meta/cleaned_file.ckan" );
+$git->_clean;
+isnt(-e $test->tmp."/CKAN-meta/cleaned_file.ckan", 1, "Cleanup Successful");
 
 subtest 'Git Errors' => sub {
   my $remote_error = App::KSP_CKAN::Tools::Git->new(
