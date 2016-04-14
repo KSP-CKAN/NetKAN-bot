@@ -36,13 +36,26 @@ subtest 'metapackage' => sub {
 my $no_mirror = App::KSP_CKAN::Metadata::Ckan->new( file => $test->tmp."/no_mirror.ckan" );
 my $hash = App::KSP_CKAN::Metadata::Ckan->new( file => $test->tmp."/hash.ckan");
 subtest 'mirror' => sub {
+  # Can mirror
   is($package->can_mirror, 1, "Package can be mirrored");
   is($metapackage->can_mirror, 0, "Meta package can't be mirrored");
   is($no_mirror->can_mirror, 0, "License not explicitly listed for mirroring");
-  is($no_mirror->download, 0, "0 hash returned for blank download link");
+  is($no_mirror->download, 0, "0 returned for blank download link");
+  
+  # Hashes
   is($no_mirror->url_hash, 0, "0 hash returned for blank download link");
   is($metapackage->url_hash, 0, "0 hash returned for metapackage");
-  is($hash->url_hash, "6F8BEBCB", "Hash calculated correctly");
+  is($hash->url_hash, "6F8BEBCB", "Hash '".$hash->url_hash."' calculated correctly");
+  
+  # Filenames
+  is(
+    $package->mirror_filename, 
+    "74770739-ExampleKAN-1.0.0.1.zip", 
+    "Filename '".$package->mirror_filename."' produced correctly");
+  is(
+    $hash->mirror_filename, 
+    "6F8BEBCB-ExampleKAN-1.0.0.1.zip", 
+    "Filename '".$hash->mirror_filename."' produced correctly");
 };
 
 # Cleanup after ourselves

@@ -9,6 +9,7 @@ use Config::JSON; # Saves us from file handling
 use List::MoreUtils 'any';
 use Carp qw( croak );
 use Digest::SHA 'sha1_hex';
+use File::Basename;
 use Moo;
 use namespace::clean;
 
@@ -54,7 +55,8 @@ has '_licenses'     => ( is => 'ro', lazy => 1, builder => 1 );
 has 'identifier'    => ( is => 'ro', lazy => 1, builder => 1 );
 has 'kind'          => ( is => 'ro', lazy => 1, builder => 1 );
 has 'download'      => ( is => 'ro', lazy => 1, builder => 1 );
-has 'license'      => ( is => 'ro', lazy => 1, builder => 1 );
+has 'license'       => ( is => 'ro', lazy => 1, builder => 1 );
+has 'version'       => ( is => 'ro', lazy => 1, builder => 1 );
 
 # TODO: We're already using file slurper + JSON elsewhere. We should
 #       pick one method for consistency.
@@ -102,6 +104,10 @@ method _build_identifier {
 
 method _build_kind {
   return $self->_raw->{config}{kind} ? $self->_raw->{config}{kind} : 'package' ;
+}
+
+method _build_version{
+  return $self->_raw->{config}{version};
 }
 
 method _build_download {
@@ -158,6 +164,14 @@ method url_hash {
     my $hash = sha1_hex($self->download);
     $hash =~ s/-//g;
     return uc(substr $hash, 0, 8);
+  }
+  return 0;
+}
+
+method mirror_filename {
+  if ($self->download) {
+    # NOTE: Do we support more than zip?
+    return $self->url_hash."-".$self->identifier."-".$self->version.".zip";
   }
   return 0;
 }
