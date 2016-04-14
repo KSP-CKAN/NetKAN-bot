@@ -65,7 +65,6 @@ Will perform a shallow clone of the repository
 
 has 'remote'    => ( is => 'ro', required => 1 );
 has 'local'     => ( is => 'ro', required => 1 );
-has '_localgit' => ( is => 'ro', lazy => 1, builder => 1 ); # Internal Shortcut for our full Git Path
 has 'working'   => ( is => 'ro', lazy => 1, builder => 1 );
 has 'clean'     => ( is => 'ro', default => sub { 0 } );
 has 'shallow'   => ( is => 'ro', default => sub { 1 } );
