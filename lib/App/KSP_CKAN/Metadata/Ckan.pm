@@ -137,7 +137,7 @@ Returns '1' if allowed, '0' if not.
 =cut
 
 method can_mirror {
-  if ( any { $_ eq $self->license } @{$self->_licenses} ) {
+  if ( (any { $_ eq $self->license } @{$self->_licenses}) && $self->is_package ) {
     return 1;
   }
   return 0;
