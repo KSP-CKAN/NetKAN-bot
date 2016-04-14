@@ -49,7 +49,7 @@ isa_ok($git->_git, "Git::Wrapper");
 is(-e $test->tmp."/CKAN-meta/README.md", 1, "Cloned successfully");
 
 # Test adding
-$test->create_ckan( $test->tmp."/CKAN-meta/test_file.ckan" );
+$test->create_ckan( file => $test->tmp."/CKAN-meta/test_file.ckan" );
 is($git->changed, 0, "No file was added");
 $git->add($test->tmp."/CKAN-meta/test_file.ckan");
 is($git->changed, 1, "File was added");
@@ -65,7 +65,7 @@ subtest 'Committing' => sub {
   
   # Test committing all files
   for my $filename (qw(test_file2.ckan test_file3.ckan)) {
-    $test->create_ckan( $test->tmp."/CKAN-meta/".$filename );
+    $test->create_ckan( file => $test->tmp."/CKAN-meta/".$filename );
   }
   $git->add;
   is($git->changed, 2, "Files were added");
@@ -75,7 +75,7 @@ subtest 'Committing' => sub {
   is($git->changed, 0, "Commit pushed");
 
   # Test reseting
-  $test->create_ckan( $test->tmp."/CKAN-meta/test_file2.ckan" );
+  $test->create_ckan( file => $test->tmp."/CKAN-meta/test_file2.ckan" );
   is($git->changed, 1, "test_file2.ckan was changed");
   @files = $git->changed;
   $git->reset( file => $files[0] );
@@ -92,7 +92,7 @@ my $pull = App::KSP_CKAN::Tools::Git->new(
   clean => 1,
 );
 $pull->pull;
-$test->create_ckan( $test->tmp."/CKAN-meta-pull/test_pull.ckan" );
+$test->create_ckan( file => $test->tmp."/CKAN-meta-pull/test_pull.ckan" );
 $pull->add;
 $pull->commit(all => 1);
 $pull->push;
@@ -105,7 +105,7 @@ $git->add;
 is($git->changed, 2, "File delete not commited");
 
 # Test cleanup
-$test->create_ckan( $test->tmp."/CKAN-meta/cleaned_file.ckan" );
+$test->create_ckan( file => $test->tmp."/CKAN-meta/cleaned_file.ckan" );
 $git->_clean;
 isnt(-e $test->tmp."/CKAN-meta/cleaned_file.ckan", 1, "Cleanup Successful");
 
@@ -117,7 +117,7 @@ subtest 'Git Errors' => sub {
     clean => 1,
   );
   $remote_error->pull;
-  $test->create_ckan( $test->tmp."/remote-error/test_push.ckan" );
+  $test->create_ckan( file => $test->tmp."/remote-error/test_push.ckan" );
   $remote_error->add;
   $remote_error->commit(all => 1);
   {

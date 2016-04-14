@@ -12,8 +12,8 @@ use App::KSP_CKAN::Test;
 my $test = App::KSP_CKAN::Test->new();
 
 use_ok("App::KSP_CKAN::Metadata::Ckan");
-$test->create_ckan( $test->tmp."/package.ckan" );
-$test->create_ckan( $test->tmp."/metapackage.ckan",1 , "metapackage" );
+$test->create_ckan( file => $test->tmp."/package.ckan" );
+$test->create_ckan( file => $test->tmp."/metapackage.ckan", kind => "metapackage" );
 
 subtest 'package' => sub {
   my $package = App::KSP_CKAN::Metadata::Ckan->new( file => $test->tmp."/package.ckan");

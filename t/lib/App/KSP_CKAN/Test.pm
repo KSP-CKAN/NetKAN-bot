@@ -81,7 +81,7 @@ method create_repo($repo) {
 
 =method create_ckan
   
-  $test->create_ckan("Path to file");
+  $test->create_ckan(file => "/path/to/file");
 
 Creates an example ckan that would pass validation at the specified
 path.
@@ -89,12 +89,38 @@ path.
 Takes an optional extra argument, that if set to false will create
 a ckan that won't pass schema validation.
   
-  $test->create_ckan("Path to file", 0);
+  $test->create_ckan( file => "/path/to/file", valid => 0);
+
+=over
+
+=item file
+
+Path and file we are creating.
+
+=item valid
+
+Defaults to true. False value will create a CKAN that will fail
+validation against the schema.
+
+=item kind
+
+Allows us to specify a different kind of package. 'metadata' is the 
+only accepted one at the moment.
+
+=item license
+
+Allows us to specify a different license.
+
+=back
 
 =cut
 
-# TODO: Switch to named attributes
-method create_ckan($file, $valid = 1, $kind = "package") {
+method create_ckan(
+  :$file, 
+  :$valid = 1, 
+  :$kind = "package",
+  :$license = "CC-BY-NC-SA",
+) {
   my $identifier = $valid ? "identifier" : "invalid_schema";
 
   # Allows us against a metapackage. TODO: make into valid metapackage
@@ -113,7 +139,7 @@ method create_ckan($file, $valid = 1, $kind = "package") {
 
   # Create the CKAN
   open my $in, '>', $file;
-  print $in qq|{"spec_version": 1, "$identifier": "ExampleKAN", "license": "CC-BY-NC-SA", "ksp_version": "0.90", "name": "Example KAN", "abstract": "It's a $rand example!", "author": "Techman83", "version": "1.0.0.1", $package}|;
+  print $in qq|{"spec_version": 1, "$identifier": "ExampleKAN", "license": "$license", "ksp_version": "0.90", "name": "Example KAN", "abstract": "It's a $rand example!", "author": "Techman83", "version": "1.0.0.1", $package}|;
   close $in;
   return;
 }
