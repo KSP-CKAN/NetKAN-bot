@@ -119,7 +119,7 @@ method create_ckan(
   :$file, 
   :$valid = 1, 
   :$kind = "package",
-  :$license = "CC-BY-NC-SA",
+  :$license = '"CC-BY-NC-SA"',
   :$download = "https://example.com/example.zip",
 ) {
   my $identifier = $valid ? "identifier" : "invalid_schema";
@@ -140,7 +140,7 @@ method create_ckan(
 
   # Create the CKAN
   open my $in, '>', $file;
-  print $in qq|{"spec_version": 1, "$identifier": "ExampleKAN", "license": "$license", "ksp_version": "0.90", "name": "Example KAN", "abstract": "It's a $rand example!", "author": "Techman83", "version": "1.0.0.1", $package}|;
+  print $in qq|{"spec_version": 1, "$identifier": "ExampleKAN", "license": $license, "ksp_version": "0.90", "name": "Example KAN", "abstract": "It's a $rand example!", "author": "Techman83", "version": "1.0.0.1", $package}|;
   close $in;
   return;
 }

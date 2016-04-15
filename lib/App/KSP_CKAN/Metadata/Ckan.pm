@@ -9,7 +9,7 @@ use Config::JSON; # Saves us from file handling
 use List::MoreUtils 'any';
 use Carp qw( croak );
 use Digest::SHA 'sha1_hex';
-use File::Basename;
+use Scalar::Util 'reftype';
 use Moo;
 use namespace::clean;
 
@@ -118,6 +118,26 @@ method _build_license {
   return $self->_raw->{config}{license} ? $self->_raw->{config}{license} : "unknown";
 }
 
+
+=method redistributable
+
+  $ckan->redistributable;
+
+Shortcut method so we can test that the CKAN is redistributable. Returns
+'1' if it has a license which allows distribution, otherwise '0'.
+
+=cut
+
+method redistributable {
+  my @array = reftype \$self->license ne "SCALAR" ? @{$self->license} : $self->license;
+  foreach my $license (@array) {
+    if (any { $_ eq $license } @{$self->_licenses}) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
 =method is_metapackage
 
   $ckan->is_package;
@@ -144,7 +164,7 @@ Returns '1' if allowed, '0' if not.
 =cut
 
 method can_mirror {
-  if ( (any { $_ eq $self->license } @{$self->_licenses}) && $self->is_package ) {
+  if ($self->is_package && $self->redistributable) {
     return 1;
   }
   return 0;
