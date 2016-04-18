@@ -36,6 +36,20 @@ attributes available.
 
 Returns the identifier for the loaded CKAN.
 
+=item abstract
+
+Returns the abstract for the loaded CKAN.
+
+=item author
+
+Returns the author field of the loaded CKAN. This could be a single
+'author' or an array of 'authors'.
+
+=item authors
+
+Returns the author field of the loaded CKAN as an array regardless
+of whether there is a single author or multiple.
+
 =item kind
 
 Returns the kind of CKAN. Default is 'package', but will return 
@@ -45,16 +59,29 @@ Returns the kind of CKAN. Default is 'package', but will return
 
 Returns the download url or 0 (in the case of a metapackage).
 
+=item homepage
+
+Returns the homepage url or 0.
+
+=item repository
+
+Returns the download url or 0.
+
 =back
 
 =cut
 
 has 'file'          => ( is => 'ro', required => 1 ); # TODO: we should do some validation here.
 has '_raw'          => ( is => 'ro', lazy => 1, builder => 1 );
-has '_licenses'     => ( is => 'ro', lazy => 1, builder => 1 );
 has 'identifier'    => ( is => 'ro', lazy => 1, builder => 1 );
+has 'authors'       => ( is => 'ro', lazy => 1, builder => 1 );
+has 'author'        => ( is => 'ro', lazy => 1, builder => 1 );
+has 'name'          => ( is => 'ro', lazy => 1, builder => 1 );
+has 'abstract'      => ( is => 'ro', lazy => 1, builder => 1 );
 has 'kind'          => ( is => 'ro', lazy => 1, builder => 1 );
 has 'download'      => ( is => 'ro', lazy => 1, builder => 1 );
+has 'homepage'      => ( is => 'ro', lazy => 1, builder => 1 );
+has 'repository'    => ( is => 'ro', lazy => 1, builder => 1 );
 has 'license'       => ( is => 'ro', lazy => 1, builder => 1 );
 has 'version'       => ( is => 'ro', lazy => 1, builder => 1 );
 
@@ -118,6 +145,46 @@ method _build_license {
   return $self->_raw->{config}{license} ? $self->_raw->{config}{license} : "unknown";
 }
 
+method _build_authors {
+  my $authors = $self->_raw->{config}{author};
+  my @authors = reftype \$authors ne "SCALAR" ? @{$authors} : $authors;
+  return \@authors;
+}
+
+method _build_author {
+ return $self->_raw->{config}{author};
+}
+
+method _build_name {
+ return $self->_raw->{config}{name};
+}
+
+method _build_abstract {
+ return $self->_raw->{config}{abstract};
+}
+
+method _build_homepage {
+ return $self->_raw->{config}{resources}{homepage};
+}
+
+method _build_repository {
+ return $self->_raw->{config}{resources}{repository};
+}
+
+=method licenses
+  
+  $ckan->licenses();
+
+Returns the license field as an array. Because unless there is
+multiple values it won't be.
+
+=cut
+ 
+# Sometimes we always want an array. 
+method licenses { 
+  my @licenses = reftype \$self->license ne "SCALAR" ? @{$self->license} : $self->license;
+  return \@licenses;
+}
 
 =method redistributable
 
@@ -129,9 +196,8 @@ Shortcut method so we can test that the CKAN is redistributable. Returns
 =cut
 
 method redistributable {
-  my @array = reftype \$self->license ne "SCALAR" ? @{$self->license} : $self->license;
-  foreach my $license (@array) {
-    if (any { $_ eq $license } @{$self->_licenses}) {
+  foreach my $license (@{$self->licenses}) {
+    if (any { $_ eq $license } @{$self->redistributable_licenses}) {
       return 1;
     }
   }
@@ -195,5 +261,7 @@ method mirror_filename {
   }
   return 0;
 }
+
+with('App::KSP_CKAN::Roles::Licenses');
 
 1;
