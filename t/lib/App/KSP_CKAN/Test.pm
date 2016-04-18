@@ -117,10 +117,11 @@ Allows us to specify a different license.
 
 method create_ckan(
   :$file, 
-  :$valid = 1, 
-  :$kind = "package",
-  :$license = '"CC-BY-NC-SA"',
-  :$download = "https://example.com/example.zip",
+  :$valid     = 1, 
+  :$random    = 1, 
+  :$kind      = "package",
+  :$license   = '"CC-BY-NC-SA"',
+  :$download  = "https://example.com/example.zip",
 ) {
   my $identifier = $valid ? "identifier" : "invalid_schema";
 
@@ -136,11 +137,15 @@ method create_ckan(
   # http://www.perlmonks.org/?node_id=233023
   my @chars = ("A".."Z", "a".."z");
   my $rand;
-  $rand .= $chars[rand @chars] for 1..8;
+  if ( $random ) {
+    $rand .= $chars[rand @chars] for 1..8;
+  } else {
+    $rand = "random";
+  }
 
   # Create the CKAN
   open my $in, '>', $file;
-  print $in qq|{"spec_version": 1, "$identifier": "ExampleKAN", "license": $license, "ksp_version": "0.90", "name": "Example KAN", "abstract": "It's a $rand example!", "author": "Techman83", "version": "1.0.0.1", $package}|;
+  print $in qq|{"spec_version": 1, "$identifier": "ExampleKAN", "license": $license, "ksp_version": "0.90", "name": "Example KAN", "abstract": "It's a $rand example!", "author": "Techman83", "version": "1.0.0.1", $package, "resources": { "homepage": "https://example.com/homepage", "repository": "https://example.com/repository" }}|;
   close $in;
   return;
 }
