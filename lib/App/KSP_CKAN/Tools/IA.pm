@@ -58,8 +58,8 @@ my $Ref = sub {
 has 'config'      => ( is => 'ro', required => 1, isa => $Ref );
 has 'collection'  => ( is => 'ro', default => sub { 'test_collection' } );
 has 'mediatype'   => ( is => 'ro', default => sub { 'software' } );
-has 'iaS3uri'     => ( is => 'rw', default => sub { 'https://s3.us.archive.org' } );
-has 'iaDLuri'     => ( is => 'rw', default => sub { 'https://www.archive.org/download' } );
+has 'iaS3uri'     => ( is => 'ro', default => sub { 'https://s3.us.archive.org' } );
+has 'iaDLuri'     => ( is => 'ro', default => sub { 'https://www.archive.org/download' } );
 has '_ua'         => ( is => 'rw', lazy => 1, builder => 1 );
 has '_ias3keys'   => ( is => 'ro', lazy => 1, builder => 1 );
 
@@ -87,6 +87,7 @@ method _download_uri($ckan) {
   return $self->iaDLuri."/".$ckan->mirror_item."/".$ckan->mirror_filename;
 }
 
+# TODO: Likely makes sense to be part of the Ckan lib.
 method _description($ckan) {
   my $description = $ckan->abstract;
   $description .= "<br><br>Homepage: <a href=\"".$ckan->homepage."\">".$ckan->homepage."</a>" if $ckan->homepage;
@@ -148,19 +149,23 @@ method _put_request( :$headers, :$uri, :$file) {
   );
 }
 
-# TODO: Write a check method for queue issues.
-#       Sometimes the task queue system which processes PUTs and DELETEs
-#       becomes overloaded, and the endpoint returns a 503 SlowDown error
-#       instead of processing an upload or delete.
-#       To check if an upload would fail because of overload you can call:
-#         curl http://s3.us.archive.org/?check_limit=1&accesskey=$accesskey&bucket=$bucket
-#       The result is a json object with 4 fields: bucket, accesskey,
-#       over_limit, and detail. Detail contains internal information
-#       about the current rate limiting scheme, it may change at any time.
-#       The over_limit field will be either 0 to indicate that the queue is
-#       ready for more uploads or deletes, or 1, indicating that uploads or
-#       deletes are likely to get a 503 SlowDown error. The fields bucket
-#       and accesskey are the query arguments passed in.
+=method check_overload
+
+ $ia->check_overload;
+
+Checks if the submission servers are overloaded or we've reached
+an API limit. Returns '1' if overloaded, '0' if not.
+
+=cut
+
+method check_overload {
+  my $res =  $self->_ua->get($self->iaS3uri."/?check_limit=1&accesskey=".$self->config->IA_access);
+ 
+  if ( $res->{_rc} == '503' ) {
+    return 1;
+  }
+  return 0;
+}
 
 =method put_ckan
 
@@ -209,14 +214,23 @@ method put_ckan( :$ckan, :$file ) {
   return 0;
 }
 
+=method ckan_mirrored
+
+  $ia->ckan_mirrored( ckan => $ckan );
+
+Requires a 'App::KSP_CKAN::Metadata::Ckan' object within the 'ckan'
+attribute. Returns '1' if mirrored, Otherwise '0' if the archive
+can't be contacted or no file is found.
+
+=cut
+
+# TODO: Not 100% happy with our returns here. I've seen spotty
+#       responses from the IA at times.
 method ckan_mirrored( :$ckan ) {
   $self->logdie("\$ckan isn't a 'App::KSP_CKAN::Metadata::Ckan' object!") 
     unless $ckan->DOES("App::KSP_CKAN::Metadata::Ckan");
   
   my $res = $self->_ua->head($self->_download_uri( $ckan ));
-
-  use Data::Dumper;
-  print Dumper($res);
 
   if ($res->is_success) {
     return 1;
