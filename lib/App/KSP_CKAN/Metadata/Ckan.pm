@@ -220,6 +220,28 @@ method url_hash {
   return 0;
 }
 
+=method mirror_item
+
+  $ckan->mirror_item;
+
+Produces an item name based of the 'identifier' and 'version'. 
+
+=cut
+
+method mirror_item {
+  return $self->identifier."-".$self->version;
+}
+
+=method mirror_filename
+
+  $ckan->mirror_filename;
+
+Produces a filename based of the 'url_hash', 'identifier' and 
+'version' if a download url exists. Returns '0' if there is no
+download url.
+
+=cut
+
 method mirror_filename {
   if ($self->download) {
     # NOTE: Do we support more than zip?
