@@ -132,7 +132,8 @@ method _metadata_headers ( $file, $ckan ) {
   return $headers;
 }
 
-# TODO: This method isn't yet tested
+# NOTE: We're using StreamingUpload here, because LWP likes to 
+#       pull the entire file into memory when uploading.
 method _put_request( :$headers, :$uri, :$file) {
   return HTTP::Request::StreamingUpload->new(
     PUT     => $uri,
@@ -141,8 +142,35 @@ method _put_request( :$headers, :$uri, :$file) {
   );
 }
 
-# TODO: This method isn't yet tested
+=method put_ckan
+
+  $ia->(
+    ckan => $ckan,
+    file => "/path/to/mod.zip",
+  );
+
+Takes a ckan object and file, then puts it on the Internet Archive.
+Returns '1' on success, '0' on failure.
+
+Requires the following named attributes:
+=over
+
+=item ckan
+
+Requires a 'App::KSP_CKAN::Metadata::Ckan' object.
+
+=item file
+
+Path to the file being uploaded.
+
+=back
+
+=cut
+
 method put_ckan( :$ckan, :$file ) {
+  $self->logdie("\$ckan isn't a 'App::KSP_CKAN::Metadata::Ckan' object!") 
+    unless $ckan->DOES("App::KSP_CKAN::Metadata::Ckan");
+
   my $headers =  $self->_metadata_headers( $file, $ckan );
   $headers->push_header('x-amz-auto-make-bucket', 1);
 
@@ -152,8 +180,13 @@ method put_ckan( :$ckan, :$file ) {
     file    => $file,
   );
 
-  my $res = $self->ua->request($request);
-  return $res;
+  my $res = $self->_ua->request($request);
+
+  if ($res->is_success) {
+    return 1;
+  }
+
+  return 0;
 }
 
 #method check_item {
