@@ -61,11 +61,20 @@ subtest 'mirror' => sub {
   is(
     $package->mirror_filename, 
     "74770739-ExampleKAN-1.0.0.1.zip", 
-    "Filename '".$package->mirror_filename."' produced correctly");
+    "Filename '".$package->mirror_filename."' produced correctly"
+  );
   is(
     $hash->mirror_filename, 
     "6F8BEBCB-ExampleKAN-1.0.0.1.zip", 
-    "Filename '".$hash->mirror_filename."' produced correctly");
+    "Filename '".$hash->mirror_filename."' produced correctly"
+  );
+
+  # Item names
+  is(
+    $package->mirror_item,
+    "ExampleKAN-1.0.0.1",
+    "Item name '".$package->mirror_item."' produced correctly"
+  );
 };
 
 # Cleanup after ourselves
