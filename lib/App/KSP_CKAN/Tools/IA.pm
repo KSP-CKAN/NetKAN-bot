@@ -27,6 +27,28 @@ use namespace::clean;
 
 Provides a light wrapper to the Internet Archives' S3 like interface.
 
+Takes the following named attributes:
+
+=over
+
+=item config
+
+Requires a 'App::KSP_CKAN::Tools::Config' object.
+
+=item collection
+
+Defaults to 'test_collection'.
+
+=item mediatype
+
+Defaults to 'software'
+
+=item iaS3uri
+
+Defaults to 'https://s3.us.archive.org'.
+
+=back
+
 =cut
 
 my $Ref = sub {
@@ -81,7 +103,7 @@ method _archive_header( $header, $value ) {
   }
 }
 
-method _put_headers ( $file, $ckan ) {
+method _metadata_headers ( $file, $ckan ) {
   $self->logdie("\$ckan isn't a 'App::KSP_CKAN::Metadata::Ckan' object!") unless $ckan->DOES("App::KSP_CKAN::Metadata::Ckan");
   my $mimetype = mimetype( $file );
 
@@ -120,12 +142,16 @@ method _put_request( :$headers, :$uri, :$file) {
 }
 
 # TODO: This method isn't yet tested
-method put_item( :$ckan, :$file ) {
+method put_ckan( :$ckan, :$file ) {
+  my $headers =  $self->_metadata_headers( $file, $ckan );
+  $headers->push_header('x-amz-auto-make-bucket', 1);
+
   my $request = $self->_put_request(
-    headers => $self->_put_headers( $file, $ckan ),
-    uri     => $self->_put_uri( $ckan ),
+    headers => $headers,
+    uri     => $self->_uri( $ckan ),
     file    => $file,
   );
+
   my $res = $self->ua->request($request);
   return $res;
 }

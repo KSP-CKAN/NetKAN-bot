@@ -76,34 +76,34 @@ subtest 'multi value as array' => sub {
   );
 };
 
-subtest '_put_headers' => sub {
+subtest '_metadata_headers' => sub {
   $test->create_ckan(
     file => $test->tmp."/upload.ckan", 
     random => 0,
     license => '[ "CC-BY-NC-SA", "GPL-2.0" ]',
   );
   my $ckan = App::KSP_CKAN::Metadata::Ckan->new( file => $test->tmp."/upload.ckan" );
-  my $put_headers = $ia->_put_headers( $test->tmp."/test.zip", $ckan );
+  my $metadata_headers = $ia->_metadata_headers( $test->tmp."/test.zip", $ckan );
   
-  isa_ok($put_headers, 'HTTP::Headers');
-  is($put_headers->{'x-archive-meta-title'}, 'Example KAN - 1.0.0.1', "Title header generated");
-  is($put_headers->{'x-archive-meta-creator'}, 'Techman83', "Creator header generated");
-  is($put_headers->{'x-archive-meta-mediatype'}, 'software', "Mediatype header generated");
-  is($put_headers->{'content-type'}, 'application/zip', "Content type header generated");
-  is($put_headers->{'x-archive-meta-collection'}, 'test_collection', "Collection header generated");
+  isa_ok($metadata_headers, 'HTTP::Headers');
+  is($metadata_headers->{'x-archive-meta-title'}, 'Example KAN - 1.0.0.1', "Title header generated");
+  is($metadata_headers->{'x-archive-meta-creator'}, 'Techman83', "Creator header generated");
+  is($metadata_headers->{'x-archive-meta-mediatype'}, 'software', "Mediatype header generated");
+  is($metadata_headers->{'content-type'}, 'application/zip', "Content type header generated");
+  is($metadata_headers->{'x-archive-meta-collection'}, 'test_collection', "Collection header generated");
   is(
-    $put_headers->{'x-archive-meta-description'},
+    $metadata_headers->{'x-archive-meta-description'},
     'It\'s a random example!<br><br>Homepage: <a href="https://example.com/homepage">https://example.com/homepage</a><br>Repository: <a href="https://example.com/repository">https://example.com/repository</a><br>License(s): CC-BY-NC-SA GPL-2.0',
     "Description header generated",
   );
-  is($put_headers->{'x-archive-meta-subject'}, 'ksp; kerbal space program; mod', "Subject header generated");
+  is($metadata_headers->{'x-archive-meta-subject'}, 'ksp; kerbal space program; mod', "Subject header generated");
   is(
-    $put_headers->{'x-archive-meta01-licenseurl'}, 
+    $metadata_headers->{'x-archive-meta01-licenseurl'}, 
     'http://creativecommons.org/licenses/by-nc-sa/1.0/',
     "CC-BY-NC-SA License header added",
   );
   is(
-    $put_headers->{'x-archive-meta02-licenseurl'}, 
+    $metadata_headers->{'x-archive-meta02-licenseurl'}, 
     'http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html',
     "GPL-2.0 License header added",
   );
