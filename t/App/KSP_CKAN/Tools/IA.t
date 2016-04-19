@@ -76,13 +76,14 @@ subtest 'multi value as array' => sub {
   );
 };
 
+$test->create_ckan(
+  file => $test->tmp."/upload.ckan", 
+  random => 0,
+  license => '[ "CC-BY-NC-SA", "GPL-2.0" ]',
+);
+my $ckan = App::KSP_CKAN::Metadata::Ckan->new( file => $test->tmp."/upload.ckan" );
+
 subtest '_metadata_headers' => sub {
-  $test->create_ckan(
-    file => $test->tmp."/upload.ckan", 
-    random => 0,
-    license => '[ "CC-BY-NC-SA", "GPL-2.0" ]',
-  );
-  my $ckan = App::KSP_CKAN::Metadata::Ckan->new( file => $test->tmp."/upload.ckan" );
   my $metadata_headers = $ia->_metadata_headers( $test->tmp."/test.zip", $ckan );
   
   isa_ok($metadata_headers, 'HTTP::Headers');
@@ -107,6 +108,30 @@ subtest '_metadata_headers' => sub {
     'http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html',
     "GPL-2.0 License header added",
   );
+};
+
+subtest 'put_ckan' => sub {
+  my $file = $test->tmp."/data/test.zip";
+  is(
+    $ia->_uri($ckan),
+    "https://s3.us.archive.org/ExampleKAN-1.0.0.1/74770739-ExampleKAN-1.0.0.1.zip",
+    "URI produced correctly",
+  );
+
+  my $put = $ia->_put_request(
+    file => $file,
+    headers => $ia->_metadata_headers( $file, $ckan ),
+    uri => $ia->_uri($ckan)
+  );
+  isa_ok($put, "HTTP::Request", "\$put is a 'HTTP::Request' object");
+  is($put->{_method}, "PUT", "Method 'PUT' set correctly");
+  is( 
+    $put->{_uri},
+    'https://s3.us.archive.org/ExampleKAN-1.0.0.1/74770739-ExampleKAN-1.0.0.1.zip',
+    "Uri in put correct",
+  );
+  isa_ok($put->{_headers}, "HTTP::Headers", "Headers are an 'HTTP::Headers' object");
+
 };
 
 # Cleanup after ourselves
