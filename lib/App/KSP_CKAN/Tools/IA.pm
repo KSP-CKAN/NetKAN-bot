@@ -36,6 +36,7 @@ my $Ref = sub {
 has 'config'      => ( is => 'ro', required => 1, isa => $Ref );
 has 'collection'  => ( is => 'ro', default => sub { 'test_collection' } );
 has 'mediatype'   => ( is => 'ro', default => sub { 'software' } );
+has 'iaS3uri'     => ( is => 'rw', default => sub { 'https://s3.us.archive.org' } );
 has '_ua'         => ( is => 'rw', lazy => 1, builder => 1 );
 has '_ias3keys'   => ( is => 'ro', lazy => 1, builder => 1 );
 
@@ -51,6 +52,11 @@ method _build__ua {
 method _build__ias3keys {
   my $config = $self->config;
   return $config->IA_access.":".$config->IA_secret;
+}
+
+method _uri($ckan) {
+  $self->logdie("\$ckan isn't a 'App::KSP_CKAN::Metadata::Ckan' object!") unless $ckan->DOES("App::KSP_CKAN::Metadata::Ckan");
+  return $self->iaS3uri."/".$ckan->mirror_item."/".$ckan->mirror_filename;
 }
 
 method _description($ckan) {
