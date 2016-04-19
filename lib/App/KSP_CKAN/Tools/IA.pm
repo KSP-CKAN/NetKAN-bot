@@ -59,13 +59,14 @@ has 'config'      => ( is => 'ro', required => 1, isa => $Ref );
 has 'collection'  => ( is => 'ro', default => sub { 'test_collection' } );
 has 'mediatype'   => ( is => 'ro', default => sub { 'software' } );
 has 'iaS3uri'     => ( is => 'rw', default => sub { 'https://s3.us.archive.org' } );
+has 'iaDLuri'     => ( is => 'rw', default => sub { 'https://www.archive.org/download' } );
 has '_ua'         => ( is => 'rw', lazy => 1, builder => 1 );
 has '_ias3keys'   => ( is => 'ro', lazy => 1, builder => 1 );
 
 method _build__ua {
   my $ua = LWP::UserAgent->new();
   $ua->agent('upload_via_KSP-CKAN/NetKAN-bot');
-  $ua->timeout(20);
+  $ua->timeout(60);
   $ua->env_proxy;
   $ua->default_headers->push_header( 'authorization' => "LOW ". $self->_ias3keys);
   return $ua;
@@ -76,9 +77,14 @@ method _build__ias3keys {
   return $config->IA_access.":".$config->IA_secret;
 }
 
-method _uri($ckan) {
+method _upload_uri($ckan) {
   $self->logdie("\$ckan isn't a 'App::KSP_CKAN::Metadata::Ckan' object!") unless $ckan->DOES("App::KSP_CKAN::Metadata::Ckan");
   return $self->iaS3uri."/".$ckan->mirror_item."/".$ckan->mirror_filename;
+}
+
+method _download_uri($ckan) {
+  $self->logdie("\$ckan isn't a 'App::KSP_CKAN::Metadata::Ckan' object!") unless $ckan->DOES("App::KSP_CKAN::Metadata::Ckan");
+  return $self->iaDLuri."/".$ckan->mirror_item."/".$ckan->mirror_filename;
 }
 
 method _description($ckan) {
@@ -142,6 +148,20 @@ method _put_request( :$headers, :$uri, :$file) {
   );
 }
 
+# TODO: Write a check method for queue issues.
+#       Sometimes the task queue system which processes PUTs and DELETEs
+#       becomes overloaded, and the endpoint returns a 503 SlowDown error
+#       instead of processing an upload or delete.
+#       To check if an upload would fail because of overload you can call:
+#         curl http://s3.us.archive.org/?check_limit=1&accesskey=$accesskey&bucket=$bucket
+#       The result is a json object with 4 fields: bucket, accesskey,
+#       over_limit, and detail. Detail contains internal information
+#       about the current rate limiting scheme, it may change at any time.
+#       The over_limit field will be either 0 to indicate that the queue is
+#       ready for more uploads or deletes, or 1, indicating that uploads or
+#       deletes are likely to get a 503 SlowDown error. The fields bucket
+#       and accesskey are the query arguments passed in.
+
 =method put_ckan
 
   $ia->(
@@ -176,7 +196,7 @@ method put_ckan( :$ckan, :$file ) {
 
   my $request = $self->_put_request(
     headers => $headers,
-    uri     => $self->_uri( $ckan ),
+    uri     => $self->_upload_uri( $ckan ),
     file    => $file,
   );
 
@@ -189,9 +209,21 @@ method put_ckan( :$ckan, :$file ) {
   return 0;
 }
 
-#method check_item {
-#
-#}
+method ckan_mirrored( :$ckan ) {
+  $self->logdie("\$ckan isn't a 'App::KSP_CKAN::Metadata::Ckan' object!") 
+    unless $ckan->DOES("App::KSP_CKAN::Metadata::Ckan");
+  
+  my $res = $self->_ua->head($self->_download_uri( $ckan ));
+
+  use Data::Dumper;
+  print Dumper($res);
+
+  if ($res->is_success) {
+    return 1;
+  }
+
+  return 0;
+}
 
 with('App::KSP_CKAN::Roles::Logger', 'App::KSP_CKAN::Roles::Licenses');
 
