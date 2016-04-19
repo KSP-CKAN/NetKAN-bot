@@ -48,7 +48,7 @@ isnt(
   "DogeCoinFlag-v1.02.ckan Invalid",
 );
    
-#$test->cleanup;
+$test->cleanup;
 
 done_testing();
 __END__
