@@ -8,14 +8,9 @@ use warnings;
 use Test::Most;
 use Test::Warnings;
 use App::KSP_CKAN::Test;
+use App::KSP_CKAN::Cached;
 use App::KSP_CKAN::Tools::Config;
 use App::KSP_CKAN::Metadata::Ckan;
-
-
-
-use Data::Dumper;
-
-
 
 # Setup our environment
 my $test = App::KSP_CKAN::Test->new();
@@ -110,29 +105,69 @@ subtest '_metadata_headers' => sub {
   );
 };
 
-subtest 'put_ckan' => sub {
-  my $file = $test->tmp."/data/test.zip";
-  is(
-    $ia->_uri($ckan),
-    "https://s3.us.archive.org/ExampleKAN-1.0.0.1/74770739-ExampleKAN-1.0.0.1.zip",
-    "URI produced correctly",
-  );
+my $tester = App::KSP_CKAN::Cached->new( test_config => $config, tmp => $test->tmp );
 
-  my $put = $ia->_put_request(
-    file => $file,
-    headers => $ia->_metadata_headers( $file, $ckan ),
-    uri => $ia->_uri($ckan)
-  );
-  isa_ok($put, "HTTP::Request", "\$put is a 'HTTP::Request' object");
-  is($put->{_method}, "PUT", "Method 'PUT' set correctly");
-  is( 
-    $put->{_uri},
-    'https://s3.us.archive.org/ExampleKAN-1.0.0.1/74770739-ExampleKAN-1.0.0.1.zip',
-    "Uri in put correct",
-  );
-  isa_ok($put->{_headers}, "HTTP::Headers", "Headers are an 'HTTP::Headers' object");
+$tester->test_live(\&iaS3_testing, 1);
+$tester->test_cached(\&iaS3_testing, 1);
 
-};
+sub iaS3_testing {
+  my ($ia,$tmp,$message) = @_;
+  my $ckan = App::KSP_CKAN::Metadata::Ckan->new( file => $tmp."/upload.ckan" );
+
+  subtest 'files' => sub {
+    my $file = $tmp."/data/test.zip";
+    is(
+      $ia->_upload_uri($ckan),
+      $ia->iaS3uri."/ExampleKAN-1.0.0.1/74770739-ExampleKAN-1.0.0.1.zip",
+      "URI produced correctly",
+    );
+  
+    my $put = $ia->_put_request(
+      file => $file,
+      headers => $ia->_metadata_headers( $file, $ckan ),
+      uri => $ia->_upload_uri($ckan)
+    );
+    isa_ok($put, "HTTP::Request", "\$put is a 'HTTP::Request' object");
+    is($put->{_method}, "PUT", "Method 'PUT' set correctly");
+    is( 
+      $put->{_uri},
+      $ia->iaS3uri.'/ExampleKAN-1.0.0.1/74770739-ExampleKAN-1.0.0.1.zip',
+      "Uri in put correct",
+    );
+    isa_ok($put->{_headers}, "HTTP::Headers", "Headers are an 'HTTP::Headers' object");
+    is(
+      $ia->put_ckan( ckan => $ckan, file => $file),
+      1, "File uploaded successfully"
+    );
+    is(
+      $ia->ckan_mirrored( ckan => $ckan ),
+      1, "Ckan is mirrored"
+    );
+    is(
+      $ia->check_overload,
+      0, "IA is not overloaded"
+    );
+
+    # TODO: If we implement live testing, these will fail.
+    #       we can add a header to our request to simulate
+    #       a failure.
+    #
+    #       Something like this:
+    #       $ia->_ua->default_headers->push_header( 'x-archive-simulate-error' => 'SlowDown' );
+    is(
+      $ia->put_ckan( ckan => $ckan, file => $file),
+      0, "File upload returned failure correctly"
+    );
+    is(
+      $ia->ckan_mirrored( ckan => $ckan ),
+      0, "Ckan is not mirrored"
+    );
+    is(
+      $ia->check_overload,
+      1, "IA is overloaded"
+    );
+  };
+}
 
 # Cleanup after ourselves
 $test->cleanup;
