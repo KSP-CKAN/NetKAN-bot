@@ -1,0 +1,24 @@
+#!/usr/bin/env perl
+
+use v5.010;
+use strict;
+use App::KSP_CKAN::Tools::Config;
+use App::KSP_CKAN::Mirror;
+
+# PODNAME: mirror-ckan
+
+# ABSTRACT: mirror-ckan - script for uploading ckan files to the mirror.
+
+# VERSION
+
+# TODO: GetOps would be much better
+my $ckan_file = $ARGV[0];
+
+# TODO: Write doco
+
+my $config = App::KSP_CKAN::Tools::Config->new();
+my $mirror = App::KSP_CKAN::Mirror->new( config => $config ); 
+
+$mirror->upload_ckan($ckan_file);
+
+exit 0;
