@@ -87,6 +87,8 @@ has 'version'       => ( is => 'ro', lazy => 1, builder => 1 );
 
 # TODO: We're already using file slurper + JSON elsewhere. We should
 #       pick one method for consistency.
+# TODO: This could also barf out on an invalid file, we'll need to
+#       Handle that somewhere.
 method _build__raw {
   return Config::JSON->new($self->file);
 }
