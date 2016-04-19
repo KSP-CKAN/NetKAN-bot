@@ -39,6 +39,7 @@ has 'ckan_schema'   => ( is => 'ro', lazy => 1, builder => 1 );
 has 'GH_token'      => ( is => 'ro', lazy => 1, builder => 1 );
 has 'IA_access'     => ( is => 'ro', lazy => 1, builder => 1 );
 has 'IA_secret'     => ( is => 'ro', lazy => 1, builder => 1 );
+has 'IA_collection' => ( is => 'ro', lazy => 1, builder => 1 );
 has 'working'       => ( is => 'ro', lazy => 1, builder => 1 );
 has 'debugging'     => ( is => 'ro', default => sub { 0 } );
 
@@ -82,6 +83,10 @@ method _build_IA_access {
 method _build_IA_secret {
   croak( "Missing 'IA_secret' from config" ) if ! $self->_config->{_}{'IA_secret'};
   return $self->_config->{_}{'IA_secret'};
+}
+
+method _build_IA_collection {
+  return $self->_config->{_}{'IA_collection'} ? $self->_config->{_}{'IA_collection'} : "test_collection";
 }
 
 method _build_GH_token {

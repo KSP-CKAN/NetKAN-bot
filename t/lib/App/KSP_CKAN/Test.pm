@@ -182,6 +182,7 @@ method create_config(:$optional = 1, :$nogh = 0) {
   if ($optional) {
     print $in "GH_token=123456789\n" if ! $nogh;
     print $in "working=".$self->_tmp."/working\n";
+    print $in "IA_collection=collection\n";
   }
 
   close $in;
