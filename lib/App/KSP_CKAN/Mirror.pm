@@ -97,7 +97,7 @@ method upload_ckan($ckanfile) {
   );
   
   if ( $result ) {
-    $self->info($ckan->mirror_item." mirrored to the Internet Archive successfully");
+    $self->info($ckan->mirror_item." mirrored to the Internet Archive successfully @ ".$ckan->mirror_url);
     return 1;
   } else {
     $self->warn($ckan->mirror_item." failed to mirror to the Internet Archive");

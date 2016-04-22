@@ -75,6 +75,13 @@ subtest 'mirror' => sub {
     "ExampleKAN-1.0.0.1",
     "Item name '".$package->mirror_item."' produced correctly"
   );
+  
+  # Mirror URL
+  is(
+    $package->mirror_url,
+    "https://archive.org/details/ExampleKAN-1.0.0.1",
+    "URL '".$package->mirror_item."' produced correctly"
+  );
 };
 
 # Cleanup after ourselves

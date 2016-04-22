@@ -252,6 +252,19 @@ method mirror_filename {
   return 0;
 }
 
+=method mirror_url
+
+  $ckan->mirror_url'
+
+Produces a mirror url based of the 'identifier' and 'version'. 
+
+=cut
+
+method mirror_url {
+  # TODO: Maybe not hardcode this.
+  return "https://archive.org/details/".$self->identifier."-".$self->version;
+}
+
 with('App::KSP_CKAN::Roles::Licenses');
 
 1;
