@@ -2,8 +2,11 @@
 
 use v5.010;
 use strict;
+use autodie qw(:all);
 use App::KSP_CKAN::Tools::Config;
 use App::KSP_CKAN::Mirror;
+use Getopt::Long;
+use File::Spec;
 
 # PODNAME: mirror-ckan
 
@@ -11,14 +14,81 @@ use App::KSP_CKAN::Mirror;
 
 # VERSION
 
-# TODO: GetOps would be much better
-my $ckan_file = $ARGV[0];
+=head1 SYNOPSIS
 
-# TODO: Write doco
+Usage:
 
-my $config = App::KSP_CKAN::Tools::Config->new();
+  mirror-ckan --ckan /path/to/file.ckan   : Takes a ckan file and mirrors it to the
+                                          : Internet Archive.
+
+  Debugging commands:
+    
+  mirror-ckan --debug                     : Run with debugging enabled.
+
+=head1 Description
+
+This is a simple cli utility for uploading ckans to the Internet Archive.
+
+=head1 BUGS/Features Requests
+
+Please submit any bugs, feature requests to
+L<https://github.com/KSP-CKAN/NetKAN-bot/issues> .
+
+Contributions are more than welcome!
+
+=head1 SEE ALSO
+
+L<App::KSP-CKAN>
+
+=cut
+
+my $PROGNAME = (File::Spec->splitpath($0))[2];
+$PROGNAME ||= 'mirror-ckan';
+
+my $DEBUG  = 0;
+my $filename;
+
+# TODO: It'd be nice to specify a path/multiple files 
+my $getopts_rc = GetOptions(
+  "version"       => \&version,
+  "debug!"        => \$DEBUG,
+  "ckan=s"        => \$filename,  
+
+  "help|?"        => \&print_usage,
+);
+
+# TODO: Allow config to be specified
+my $config = App::KSP_CKAN::Tools::Config->new(
+  debugging => $DEBUG,
+);
 my $mirror = App::KSP_CKAN::Mirror->new( config => $config ); 
 
-$mirror->upload_ckan($ckan_file);
+$mirror->upload_ckan($filename);
 
 exit 0;
+
+sub version {
+  $::VERSION ||= "Unreleased";
+  say "$PROGNAME version          : $::VERSION";
+  exit 1;
+}
+
+sub print_usage {
+  say q{
+  Usage:
+
+  mirror-ckan --ckan /path/to/file.ckan   : Takes a ckan file and mirrors it to the
+                                          : Internet Archive.
+
+  Debugging commands:
+    
+  mirror-ckan --debug                     : Run with debugging enabled.
+  mirror-ckan --version                   : Run with debugging enabled.
+
+  For more documentation, use `perldoc mirror-ckan`.
+  };
+
+  exit 1;
+}
+
+__END__
