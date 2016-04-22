@@ -60,19 +60,26 @@ method _clean_tmp_dir($tmp) {
   return;
 }
 
+# TODO: What happens when we load an invalid file?
 method _load_ckan($ckanfile) {
   $self->logdie("Ckan file does not exist at '$ckanfile'") unless (-f $ckanfile);
   return App::KSP_CKAN::Metadata::Ckan->new( file => $ckanfile );
 }
 
 # TODO: Could use some more logic here, maybe a while loop.
-method _check_overload {
+method _check_overload($tmp) {
   if ( $self->_ia->check_overload ) {
+    # Let's clean ourselves up first.
+    $self->_clean_tmp_dir($tmp);
     $self->logdie("The Internet Archive is overloaded, try again later");
   }
   return;
 }
 
+# TODO: A lot of this logic should be moved into the IA class. We could
+#       very easily support multiple mirror backends. Potentially
+#       convert IA to a Role, or make this class exntendable with a
+#       required attribute of App::KSP_CKAN::Mirror::$Backend
 method upload_ckan($ckanfile) {
   my $ckan = $self->_load_ckan($ckanfile);
   $self->logdie("Ckan '".$ckan->mirror_item."' cannot be mirrored") unless $ckan->can_mirror;
@@ -82,7 +89,7 @@ method upload_ckan($ckanfile) {
     url   => $ckan->download,
     path  => $file,
   );
-  $self->_check_overload;
+  $self->_check_overload($tmp);
   
   my $result = $self->_ia->put_ckan(
     ckan => $ckan,
