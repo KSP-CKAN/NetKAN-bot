@@ -18,7 +18,7 @@ use Moo::Role;
 =head1 DESCRIPTION
 
 We care about licenses deeply. It helps us make decisions about
-what we can and can't do with hosted mods. Such as mirroirng.
+what we can and can't do with hosted mods. Such as mirroring.
 
 =cut
 
@@ -151,7 +151,7 @@ method redistributable_licenses {
 
   $self->license_url("GPL-2.0");
 
-We may not have all the URLs for licenses intially. In the fullness
+We may not have all the URLs for licenses initially. In the fullness
 of time this will just prevent errors for new licenses being added
 to the spec. Returns a url when it is is known and 0 for no license url.
 
