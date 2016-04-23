@@ -137,7 +137,8 @@ method _metadata_headers ( $file, $ckan ) {
   foreach my $license (@{$ckan->licenses}) {
     push(@urls, $self->license_url($license)) if $self->license_url($license);
   }
-  my @url_headers = $self->_archive_header('licenseurl', \@urls) if $urls[0];
+  my @url_headers;
+  @url_headers = $self->_archive_header('licenseurl', \@urls) if $urls[0];
   $headers->push_header(@url_headers) if $url_headers[0];
 
   return $headers;
