@@ -6,6 +6,8 @@ use warnings;
 use autodie;
 use Method::Signatures 20140224;
 use File::chdir;
+use File::Path qw( mkpath );
+use App::KSP_CKAN::Tools::Config;
 use Moo;
 use namespace::clean;
 
@@ -29,9 +31,15 @@ Webhook wrapper for NetKAN inflation on demand.
 
 has 'config' => ( is => 'ro', lazy => 1, builder => 1 );
 
+# TODO: This is a hack, the application should be multi
+#       function aware. 
 method _build_config {
+  my $working = $ENV{HOME}."/CKAN-Webhooks/inflator";
+  if ( ! -d $working ) {
+    mkpath($working);
+  }
   return App::KSP_CKAN::Tools::Config->new(
-    working => $ENV{HOME}."/NetKAN-inflator",
+    working => $working,
   );
 }
 

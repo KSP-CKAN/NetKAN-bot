@@ -1,0 +1,101 @@
+#! /bin/sh
+#
+### BEGIN INIT INFO
+# Provides:             ckan-webhooks
+# Default-Start:        2 3 4 5
+# Default-Stop:         0 1 6
+# Short-Description:    CKAN Webhooks
+# Description:          init script for CKAN Webhook Service.
+### END INIT INFO
+
+USER=netkan
+GROUP=netkan
+PATH=/sbin:/bin:/usr/sbin:/usr/bin:/home/$USER/perl5/bin
+NAME=ckan-webhooks
+DESC="CKAN Webhooks"
+PIDDIR=/var/run/$NAME
+PIDFILE=$PIDDIR/$NAME.pid
+WORKDIR=/home/$USER/CKAN-Webhooks
+DAEOPTS="-E production -s Twiggy /home/$USER/perl5/bin/ckan-webhooks"
+DAEMON=/home/$USER/perl5/bin/plackup
+
+test -x $DAEMON || exit 0
+export PERL5LIB=$PERL5LIB:/home/$USER/perl5/lib/perl5
+
+case "$1" in
+  start)
+        echo -n "Starting $DESC ..."
+        [ -d $PIDDIR ] || install -o $USER -d $PIDDIR
+        start-stop-daemon --start --quiet \
+                --pidfile $PIDFILE \
+                --make-pidfile \
+                --chuid $USER:$GROUP \
+                --chdir $WORKDIR \
+                --background \
+                --exec $DAEMON -- $DAEOPTS
+
+        case "$?" in
+                0|1) echo "Started" ;;
+                2) echo "Failed" ;;
+        esac
+        ;;
+  stop)
+        echo -n "Stopping $DESC ..."
+        start-stop-daemon --stop --quiet \
+                --retry=TERM/30/KILL/5 \
+                --pidfile $PIDFILE \
+                --user $USER
+        case "$?" in
+                0|1)    rm -f $PIDFILE
+                        echo "Stopped"
+                        ;;
+                2)      echo "Failed" ;;
+        esac
+        ;;
+  status)
+        if start-stop-daemon --test --stop --quiet \
+                --pidfile $PIDFILE \
+                --user $USER
+        then
+                echo "$DESC is running."
+                exit 0
+        else
+                echo "$DESC is not running"
+                exit 3
+        fi
+        ;;
+  restart)
+        echo -n "Restarting $DESC ..."
+        start-stop-daemon --stop --quiet \
+                --retry=TERM/30/KILL/5 \
+                --pidfile $PIDFILE \
+                --user $USER
+        case "$?" in
+                0|1)
+                        [ -d $PIDDIR ] || install -o $USER -d $PIDDIR
+                        rm -f $PIDFILE
+                        start-stop-daemon --start --quiet \
+                                --pidfile $PIDFILE \
+                                --make-pidfile \
+                                --chuid $USER:$GROUP \
+                                --chdir $WORKDIR \
+                                --background \
+                                --exec $DAEMON -- $DAEOPTS
+                        case "$?" in
+                                0) echo "Restarted" ;;
+                                *) echo "Start Failed" ;;
+                        esac
+                        ;;
+                *)
+                        echo "Stop Failed"
+                        ;;
+        esac
+        ;;
+  *)
+        N=/etc/init.d/$NAME
+        echo "Usage: $N {start|stop|restart|status}" >&2
+        exit 3
+        ;;
+esac
+
+exit 0
