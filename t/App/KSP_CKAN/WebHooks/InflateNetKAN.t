@@ -26,7 +26,6 @@ my $inflate = App::KSP_CKAN::WebHooks::InflateNetKAN->new(
   config => $config,
 );
 
-# TODO: Figure out the exporter
 $inflate->inflate("DogeCoinFlag");
 
 {
