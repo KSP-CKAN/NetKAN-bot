@@ -167,6 +167,7 @@ method check_overload {
   my $res =  $self->_ua->get($self->iaS3uri."/?check_limit=1&accesskey=".$self->config->IA_access);
  
   if ( $res->{_rc} == '503' ) {
+    $self->warn("Internet archive overloaded");
     return 1;
   }
   return 0;
@@ -215,6 +216,8 @@ method put_ckan( :$ckan, :$file ) {
   if ($res->is_success) {
     return 1;
   }
+  
+  $self->warn("Put failed: ".$res->message) if $res->is_error;
 
   return 0;
 }
@@ -240,6 +243,8 @@ method ckan_mirrored( :$ckan ) {
   if ($res->is_success) {
     return 1;
   }
+
+  $self->warn($res->message) if $res->is_error;
 
   return 0;
 }
