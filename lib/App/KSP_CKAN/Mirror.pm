@@ -96,13 +96,15 @@ method upload_ckan($ckanfile) {
     file => $file,
   );
   
+  # TODO: This needs a test, we weren't cleaning our temp files.
+  $self->_clean_tmp_dir($tmp);
+
   if ( $result ) {
     $self->info($ckan->mirror_item." mirrored to the Internet Archive successfully @ ".$ckan->mirror_url);
     return 1;
   } else {
     $self->warn($ckan->mirror_item." failed to mirror to the Internet Archive");
   }
-  $self->_clean_tmp_dir($tmp);
   return 0;
 }
 
