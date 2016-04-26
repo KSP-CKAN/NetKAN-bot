@@ -53,19 +53,17 @@ subtest 'mirror' => sub {
   is($no_mirror->download, 0, "0 returned for blank download link");
   
   # Hashes
-  is($no_mirror->url_hash, 0, "0 hash returned for blank download link");
-  is($metapackage->url_hash, 0, "0 hash returned for metapackage");
-  is($hash->url_hash, "6F8BEBCB", "Hash '".$hash->url_hash."' calculated correctly");
+  is($hash->hash, "B4FE5BA2", "Hash '".$hash->hash."' calculated correctly");
   
   # Filenames
   is(
     $package->mirror_filename, 
-    "74770739-ExampleKAN-1.0.0.1.zip", 
+    "B4FE5BA2-ExampleKAN-1.0.0.1.zip", 
     "Filename '".$package->mirror_filename."' produced correctly"
   );
   is(
     $hash->mirror_filename, 
-    "6F8BEBCB-ExampleKAN-1.0.0.1.zip", 
+    "B4FE5BA2-ExampleKAN-1.0.0.1.zip", 
     "Filename '".$hash->mirror_filename."' produced correctly"
   );
 

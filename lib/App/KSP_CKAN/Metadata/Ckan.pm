@@ -204,22 +204,20 @@ method can_mirror {
   return 0;
 }
 
-=method url_hash
+=method file_hash
 
-  $ckan->url_hash;
+  $ckan->hash;
   
-Produces a url hash in the same format as the 'NetFileCache.cs' 
-method 'CreateURLHash'.
+Produces a file hash in the similar format as the 'NetFileCache.cs' 
+method 'CreateURLHash', however derives it from the identifier/version
+rather than the url.
 
 =cut
 
-method url_hash {
-  if ($self->download) {
-    my $hash = sha1_hex($self->download);
-    $hash =~ s/-//g;
-    return uc(substr $hash, 0, 8);
-  }
-  return 0;
+method hash {
+  my $hash = sha1_hex($self->identifier.$self->version);
+  $hash =~ s/-//g;
+  return uc(substr $hash, 0, 8);
 }
 
 =method mirror_item
@@ -247,7 +245,7 @@ download url.
 method mirror_filename {
   if ($self->download) {
     # NOTE: Do we support more than zip?
-    return $self->url_hash."-".$self->identifier."-".$self->version.".zip";
+    return $self->hash."-".$self->identifier."-".$self->version.".zip";
   }
   return 0;
 }
