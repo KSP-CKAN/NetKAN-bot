@@ -61,7 +61,7 @@ post '/gh_inflate' => sub {
 
   if ($#commits == -1) {
     info("No commits received"); 
-    send_error "An array of commits is required", 400;
+    return { "message" => "No add/remove commits received" };
   }
 
   inflate_github(commits => \@commits);
