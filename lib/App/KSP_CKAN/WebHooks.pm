@@ -5,6 +5,7 @@ use App::KSP_CKAN::WebHooks::InflateNetKAN;
 use Method::Signatures 20140224;
 use Digest::SHA qw(hmac_sha1_hex);
 use File::Basename 'basename';
+use List::MoreUtils 'none';
 use AnyEvent::Util;
 use Try::Tiny;
 use File::Touch;
@@ -88,7 +89,11 @@ method inflate_github($commits) {
   my @netkans;
   foreach my $file (@files) {
     # Lets only try to send NetKAN actual netkans.
-    push(@netkans, basename($file,".netkan")) if $file =~ /\.netkan$/;
+    # Also only do each one once
+    my $netkan = basename($file,".netkan");
+    if ($file =~ /\.netkan$/ && (none { $_ eq $netkan } @netkans)) {
+      push(@netkans, basename($file,".netkan"));
+    }
   }
   
   if ($#netkans == -1) {
