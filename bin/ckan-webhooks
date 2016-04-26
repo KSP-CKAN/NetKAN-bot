@@ -12,6 +12,9 @@ use File::Path qw(mkpath);
 
 # VERSION
 
+# TODO: Investigate config passing
+$ENV{XKAN_GHSECRET} or die 'XKAN_GHSECRET needs to be set';
+
 if ( -e "/tmp/xKan_netkan.lock" ) {
   unlink "/tmp/xKan_netkan.lock";
 }
@@ -30,8 +33,6 @@ if (config->{environment} eq 'development') {
   config->{logger}{log_level} = "info";
   config->{logger}{location} = config->{appdir};
 }
-
-use Data::Dumper;
 
 set serializer => 'JSON';
 

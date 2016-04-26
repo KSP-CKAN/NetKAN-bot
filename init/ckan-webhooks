@@ -19,6 +19,11 @@ WORKDIR=/home/$USER/CKAN-Webhooks
 DAEOPTS="-E production -s Twiggy /home/$USER/perl5/bin/ckan-webhooks"
 DAEMON=/home/$USER/perl5/bin/plackup
 
+# TODO: This could use improvement.
+GH_SECRET=$WORKDIR/ghsecret
+test -e $GH_SECRET || exit 0
+export XKAN_GHSECRET=`cat $GH_SECRET`
+
 test -x $DAEMON || exit 0
 export PERL5LIB=$PERL5LIB:/home/$USER/perl5/lib/perl5
 

@@ -2,6 +2,9 @@ package App::KSP_CKAN::WebHooks;
 
 use Dancer2 appname => "xKanHooks";
 use App::KSP_CKAN::WebHooks::InflateNetKAN;
+use Method::Signatures 20140224;
+use Digest::SHA qw(hmac_sha1_hex);
+use File::Basename 'basename';
 use AnyEvent::Util;
 use Try::Tiny;
 use File::Touch;
@@ -29,6 +32,74 @@ post '/inflate' => sub {
     send_error "An array of identifiers is required", 400;
   }
 
+  inflate_netkans(identifiers => \@identifiers);
+
+  status(204);
+  return;
+};
+
+post '/gh_inflate' => sub {
+  my $signature = request->header('x-hub-signature');
+  my $body = request->content;
+
+  if ( ! defined $signature ) {
+    send_error("Post header 'x-hub-signature required'", 400);
+  }
+
+  if ( ! $body ) {
+    send_error("post content required", 400);
+  }
+
+  if ( $signature ne calc_gh_signature( body => $body) ) { 
+    send_error("Signature mismatch", 400);
+  } 
+
+  my @commits;
+  try {
+    @commits = @{from_json(request->body)->{commits}};
+  };
+
+  if ($#commits == -1) {
+    info("No commits received"); 
+    send_error "An array of commits is required", 400;
+  }
+
+  inflate_github(commits => \@commits);
+
+  status(204);
+  return;
+};
+
+method calc_gh_signature($body) {
+  return 'sha1='.hmac_sha1_hex($body, $ENV{XKAN_GHSECRET});
+}
+
+method inflate_github($commits) {
+  my @files;
+  foreach my $commit (@{$commits}) {
+    push(@files, (@{$commit->{added}},@{$commit->{modified}}));
+  }
+  
+  if ($#files == -1) {
+    info("Nothing add/modified");
+    return;
+  }
+
+  my @netkans;
+  foreach my $file (@files) {
+    # Lets only try to send NetKAN actual netkans.
+    push(@netkans, basename($file,".netkan")) if $file =~ /\.netkan$/;
+  }
+  
+  if ($#netkans == -1) {
+    info("No netkans found in file list");
+    return;
+  }
+
+  inflate_netkans(identifiers => \@netkans);
+}
+
+method inflate_netkans($identifiers) {
   fork_call {
     my $inflater = App::KSP_CKAN::WebHooks::InflateNetKAN->new();
 
@@ -44,7 +115,7 @@ post '/inflate' => sub {
     debug("Locking environment");
     touch("/tmp/xKan_netkan.lock");
     
-    foreach my $netkan (@identifiers) {
+    foreach my $netkan (@{$identifiers}) {
       info("Inflating $netkan");
       $inflater->inflate($netkan);
       info("Completed $netkan");
@@ -56,9 +127,7 @@ post '/inflate' => sub {
     unlink("/tmp/xKan_netkan.lock");
     return;
   };
-
-  status(204);
   return;
-};
+}
 
 1;
