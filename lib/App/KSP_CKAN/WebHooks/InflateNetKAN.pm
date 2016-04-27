@@ -7,6 +7,7 @@ use autodie;
 use Method::Signatures 20140224;
 use File::chdir;
 use File::Path qw( mkpath );
+use Scalar::Util 'reftype';
 use App::KSP_CKAN::Tools::Config;
 use Moo;
 use namespace::clean;
@@ -43,32 +44,40 @@ method _build_config {
   );
 }
 
-method inflate($identifier) {
-  my $file = "NetKAN/".$identifier.".netkan";
+method inflate($identifiers) {
+  # Lets take an array as well! 
+  my @identifiers = reftype \$identifiers ne "SCALAR" ? @{$identifiers} : $identifiers;
+
+  # Prepare Enironment
   $self->_mirror_files;
   $self->_CKAN_meta->pull;
   $self->_NetKAN->pull;
   local $CWD = $self->config->working."/".$self->_NetKAN->working;
 
-  if (! -e $file) {
-    $self->warn("The identifier '".$identifier."' doesn't appear to exist");
-    return 0;
+  foreach my $identifier (@identifiers) {
+    my $file = "NetKAN/".$identifier.".netkan";
+
+    if (! -e $file) {
+      $self->warn("The identifier '".$identifier."' doesn't appear to exist");
+      next;
+    }
+
+    # TODO: We're already passing in the config, is it really
+    # necessary to pass in each of the other things as attributes?
+    my $config = $self->config;
+    my $netkan = App::KSP_CKAN::Tools::NetKAN->new(
+      config      => $config,
+      netkan      => $config->working."/netkan.exe",
+      cache       => $config->working."/cache",
+      token       => $config->GH_token,
+      file        => $file,
+      ckan_meta   => $self->_CKAN_meta,
+      status      => $self->_status,
+      rescan      => 1,
+    );
+    $netkan->inflate;
   }
 
-  # TODO: We're already passing in the config, is it really
-  # necessary to pass in each of the other things as attributes?
-  my $config = $self->config;
-  my $netkan = App::KSP_CKAN::Tools::NetKAN->new(
-    config      => $config,
-    netkan      => $config->working."/netkan.exe",
-    cache       => $config->working."/cache",
-    token       => $config->GH_token,
-    file        => $file,
-    ckan_meta   => $self->_CKAN_meta,
-    status      => $self->_status,
-    rescan      => 1,
-  );
-  $netkan->inflate;
   $self->_push;
 
   # TODO: Status won't be set for inflate on demand because currently

@@ -120,11 +120,9 @@ method inflate_netkans($identifiers) {
     debug("Locking environment");
     touch("/tmp/xKan_netkan.lock");
     
-    foreach my $netkan (@{$identifiers}) {
-      info("Inflating $netkan");
-      $inflater->inflate($netkan);
-      info("Completed $netkan");
-    }
+    info("Inflating: ".join(", ", @{$identifiers}));
+    $inflater->inflate(\@{$identifiers});
+    info("Completed: ".join(", ", @{$identifiers}));
 
     return;
   } sub {
