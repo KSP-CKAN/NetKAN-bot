@@ -118,7 +118,7 @@ sub iaS3_testing {
     my $file = $tmp."/data/test.zip";
     is(
       $ia->_upload_uri($ckan),
-      $ia->iaS3uri."/ExampleKAN-1.0.0.1/B4FE5BA2-ExampleKAN-1.0.0.1.zip",
+      $ia->iaS3uri."/ExampleKAN-1.0.0.1/1A2B3C4D-ExampleKAN-1.0.0.1.zip",
       "URI produced correctly",
     );
   
@@ -131,7 +131,7 @@ sub iaS3_testing {
     is($put->{_method}, "PUT", "Method 'PUT' set correctly");
     is( 
       $put->{_uri},
-      $ia->iaS3uri.'/ExampleKAN-1.0.0.1/B4FE5BA2-ExampleKAN-1.0.0.1.zip',
+      $ia->iaS3uri.'/ExampleKAN-1.0.0.1/1A2B3C4D-ExampleKAN-1.0.0.1.zip',
       "Uri in put correct",
     );
     isa_ok($put->{_headers}, "HTTP::Headers", "Headers are an 'HTTP::Headers' object");

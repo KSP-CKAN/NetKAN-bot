@@ -225,24 +225,27 @@ Returns '1' if allowed, '0' if not.
 =cut
 
 method can_mirror {
-  if ($self->is_package && $self->redistributable) {
-    return 1;
+  if ( ! $self->is_package ) {
+    return 0;
+  } elsif ( ! $self->redistributable ) {
+    return 0;
+  } elsif ( ! $self->extension($self->download_content_type) ) {
+    return 0;
   }
-  return 0;
+  return 1;
 }
 
-=method file_hash
+=method url_hash
 
-  $ckan->hash;
+  $ckan->url hash;
   
-Produces a file hash in the similar format as the 'NetFileCache.cs' 
-method 'CreateURLHash', however derives it from the identifier/version
-rather than the url.
+Produces a url hash in the same format as the 'NetFileCache.cs' 
+method 'CreateURLHash'.
 
 =cut
 
-method hash {
-  my $hash = sha1_hex($self->identifier.$self->version);
+method url_hash {
+  my $hash = sha1_hex($self->download);
   $hash =~ s/-//g;
   return uc(substr $hash, 0, 8);
 }
@@ -263,16 +266,16 @@ method mirror_item {
 
   $ckan->mirror_filename;
 
-Produces a filename based of the 'url_hash', 'identifier' and 
-'version' if a download url exists. Returns '0' if there is no
-download url.
+Produces a filename based of the first 8 digits in sha1 hash,
+the 'identifier' and the 'version' in the metadata if the
+download_hash exists. Returns '0' if there is no download hash.
 
 =cut
 
 method mirror_filename {
-  if ($self->download) {
+  if ($self->download_sha1) {
     # NOTE: Do we support more than zip?
-    return $self->hash."-".$self->identifier."-".$self->version.".zip";
+    return substr($self->download_sha1,0,8)."-".$self->identifier."-".$self->version.".zip";
   }
   return 0;
 }
@@ -290,6 +293,6 @@ method mirror_url {
   return "https://archive.org/details/".$self->identifier."-".$self->version;
 }
 
-with('App::KSP_CKAN::Roles::Licenses');
+with('App::KSP_CKAN::Roles::Licenses','App::KSP_CKAN::Roles::FileServices');
 
 1;
