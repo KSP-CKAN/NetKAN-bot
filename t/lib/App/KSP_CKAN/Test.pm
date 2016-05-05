@@ -129,6 +129,8 @@ method create_ckan(
   my $package;
   if ( $kind eq "metapackage" ) {
     $package = '"kind": "metapackage"';
+  } elsif ( $kind eq "nohash" ) {
+    $package = qq|"download": "$download"|;
   } else {
     $package = qq|"download": "$download","download_hash": { "sha1": "1A2B3C4D5E","sha256": "1A2B3C4D5E1A2B3C4D5E" }, "download_content_type": "application/zip"|;
   }
