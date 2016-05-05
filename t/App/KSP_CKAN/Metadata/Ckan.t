@@ -72,6 +72,7 @@ subtest 'mirror' => sub {
     "1A2B3C4D-ExampleKAN-1.0.0.1.zip", 
     "Filename '".$hash->mirror_filename."' produced correctly"
   );
+  is($no_hash->mirror_filename, 0, "Content type not applicable for producing a filename");
 
   # Item names
   is(

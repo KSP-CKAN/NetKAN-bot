@@ -268,16 +268,22 @@ method mirror_item {
 
 Produces a filename based of the first 8 digits in sha1 hash,
 the 'identifier' and the 'version' in the metadata if the
-download_hash exists. Returns '0' if there is no download hash.
+download_hash exists. Returns '0' if there is no download hash
+or has an content type other than zip/gz/tar/tar.gz.
 
 =cut
 
 method mirror_filename {
-  if ($self->download_sha1) {
-    # NOTE: Do we support more than zip?
-    return substr($self->download_sha1,0,8)."-".$self->identifier."-".$self->version.".zip";
+  if ( ! $self->download_sha1 ) {
+    return 0;
+  } elsif ( ! $self->extension($self->download_content_type) ) {
+    return 0;
   }
-  return 0;
+  return 
+    substr($self->download_sha1,0,8)."-"
+    .$self->identifier."-"
+    .$self->version."."
+    .$self->extension($self->download_content_type);
 }
 
 =method mirror_url
