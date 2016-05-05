@@ -130,7 +130,7 @@ method create_ckan(
   if ( $kind eq "metapackage" ) {
     $package = '"kind": "metapackage"';
   } else {
-    $package = "\"download\": \"$download\"";
+    $package = qq|"download": "$download","download_hash": { "sha1": "1A2B3C4D5E","sha256": "1A2B3C4D5E1A2B3C4D5E" }, "download_content_type": "application/zip"|;
   }
 
   # Lets us generate CKANs that are different.

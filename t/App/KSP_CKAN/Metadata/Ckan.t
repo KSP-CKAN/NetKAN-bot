@@ -32,6 +32,9 @@ subtest 'fields' => sub {
   is($package->name, "Example KAN", "Name successfully retrieved");
   is($package->license, "CC-BY-NC-SA", "License successfully retrieved");
   is($package->version, "1.0.0.1", "Version successfully retrieved");
+  is($package->download_sha1, '1A2B3C4D5E', "Download sha1 successfully retrieved");
+  is($package->download_sha256, '1A2B3C4D5E1A2B3C4D5E', "Download sha256 successfully retrieved");
+  is($package->download_content_type, 'application/zip', "Download content type successfully retrieved");
 };
 
 my $metapackage = App::KSP_CKAN::Metadata::Ckan->new( file => $test->tmp."/metapackage.ckan");

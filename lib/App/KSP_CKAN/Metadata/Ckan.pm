@@ -59,6 +59,18 @@ Returns the kind of CKAN. Default is 'package', but will return
 
 Returns the download url or 0 (in the case of a metapackage).
 
+=item download_sha1
+
+Returns the download sha1 hash or 0 if not present.
+
+=item download_sha256
+
+Returns the download sha256 hash or 0 if not present.
+
+=item download_content_type
+
+Returns the download content type or 0 if not present.
+
 =item homepage
 
 Returns the homepage url or 0.
@@ -71,19 +83,22 @@ Returns the download url or 0.
 
 =cut
 
-has 'file'          => ( is => 'ro', required => 1 ); # TODO: we should do some validation here.
-has '_raw'          => ( is => 'ro', lazy => 1, builder => 1 );
-has 'identifier'    => ( is => 'ro', lazy => 1, builder => 1 );
-has 'authors'       => ( is => 'ro', lazy => 1, builder => 1 );
-has 'author'        => ( is => 'ro', lazy => 1, builder => 1 );
-has 'name'          => ( is => 'ro', lazy => 1, builder => 1 );
-has 'abstract'      => ( is => 'ro', lazy => 1, builder => 1 );
-has 'kind'          => ( is => 'ro', lazy => 1, builder => 1 );
-has 'download'      => ( is => 'ro', lazy => 1, builder => 1 );
-has 'homepage'      => ( is => 'ro', lazy => 1, builder => 1 );
-has 'repository'    => ( is => 'ro', lazy => 1, builder => 1 );
-has 'license'       => ( is => 'ro', lazy => 1, builder => 1 );
-has 'version'       => ( is => 'ro', lazy => 1, builder => 1 );
+has 'file'                  => ( is => 'ro', required => 1 ); # TODO: we should do some validation here.
+has '_raw'                  => ( is => 'ro', lazy => 1, builder => 1 );
+has 'identifier'            => ( is => 'ro', lazy => 1, builder => 1 );
+has 'authors'               => ( is => 'ro', lazy => 1, builder => 1 );
+has 'author'                => ( is => 'ro', lazy => 1, builder => 1 );
+has 'name'                  => ( is => 'ro', lazy => 1, builder => 1 );
+has 'abstract'              => ( is => 'ro', lazy => 1, builder => 1 );
+has 'kind'                  => ( is => 'ro', lazy => 1, builder => 1 );
+has 'download'              => ( is => 'ro', lazy => 1, builder => 1 );
+has 'download_sha1'         => ( is => 'ro', lazy => 1, builder => 1 );
+has 'download_sha256'       => ( is => 'ro', lazy => 1, builder => 1 );
+has 'download_content_type' => ( is => 'ro', lazy => 1, builder => 1 );
+has 'homepage'              => ( is => 'ro', lazy => 1, builder => 1 );
+has 'repository'            => ( is => 'ro', lazy => 1, builder => 1 );
+has 'license'               => ( is => 'ro', lazy => 1, builder => 1 );
+has 'version'               => ( is => 'ro', lazy => 1, builder => 1 );
 
 # TODO: We're already using file slurper + JSON elsewhere. We should
 #       pick one method for consistency.
@@ -111,6 +126,18 @@ method _build_download {
 
 method _build_license {
   return $self->_raw->{config}{license} ? $self->_raw->{config}{license} : "unknown";
+}
+
+method _build_download_sha1 {
+  return $self->_raw->{config}{download_hash}{sha1} ? $self->_raw->{config}{download_hash}{sha1} : 0;
+}
+
+method _build_download_sha256 {
+  return $self->_raw->{config}{download_hash}{sha256} ? $self->_raw->{config}{download_hash}{sha256} : 0;
+}
+
+method _build_download_content_type {
+  return $self->_raw->{config}{download_content_type} ? $self->_raw->{config}{download_content_type} : 0;
 }
 
 method _build_authors {
