@@ -31,6 +31,7 @@ method _cached_ia {
     collection  => "test_collection",
     iaS3uri     => "http://localhost:3001",
     iaDLuri     => "http://localhost:3001/download",
+    iaMDuri     => "http://localhost:3001/metadata",
   );
 }
 

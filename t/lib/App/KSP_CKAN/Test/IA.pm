@@ -38,4 +38,14 @@ get '/download/:item/:file' => sub {
   }
 };
 
+get '/metadata/:item' => sub {
+  if ( ! defined $state->{mirrored} ) {
+    $state->{mirrored} = 1;
+    return '{ "files": [ { "name": "74770739-ExampleKAN-1.0.0.1.zip", "sha1": "1a2B3c4D5e"} ] }';
+  } else {
+    status(400);
+    return '';
+  }
+};
+
 1;

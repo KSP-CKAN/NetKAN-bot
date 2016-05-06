@@ -8,8 +8,12 @@ use Method::Signatures 20140224;
 use LWP::UserAgent;
 use File::MimeInfo::Magic 'mimetype';
 use Scalar::Util 'reftype';
+use List::MoreUtils;
 use HTTP::Request::StreamingUpload;
 use Encode;
+use JSON 'from_json';
+use Try::Tiny;
+use List::MoreUtils 'any';
 use Moo;
 use namespace::clean;
 
@@ -59,6 +63,7 @@ has 'config'      => ( is => 'ro', required => 1, isa => $Ref );
 has 'mediatype'   => ( is => 'ro', default => sub { 'software' } );
 has 'iaS3uri'     => ( is => 'ro', default => sub { 'https://s3.us.archive.org' } );
 has 'iaDLuri'     => ( is => 'ro', default => sub { 'https://www.archive.org/download' } );
+has 'iaMDuri'     => ( is => 'ro', default => sub { 'https://www.archive.org/metadata' } );
 has 'collection'  => ( is => 'ro', lazy => 1, builder => 1 );
 has '_ua'         => ( is => 'rw', lazy => 1, builder => 1 );
 has '_ias3keys'   => ( is => 'ro', lazy => 1, builder => 1 );
@@ -91,6 +96,11 @@ method _download_uri($ckan) {
   return $self->iaDLuri."/".$ckan->mirror_item."/".$ckan->mirror_filename;
 }
 
+method _metadata_uri($ckan) {
+  $self->logdie("\$ckan isn't a 'App::KSP_CKAN::Metadata::Ckan' object!") unless $ckan->DOES("App::KSP_CKAN::Metadata::Ckan");
+  return $self->iaMDuri."/".$ckan->mirror_item;
+}
+
 # TODO: Likely makes sense to be part of the Ckan lib.
 method _description($ckan) {
   my $description = $ckan->abstract;
@@ -117,6 +127,9 @@ method _archive_header( $header, $value ) {
 method _metadata_headers ( $file, $ckan ) {
   $self->logdie("\$ckan isn't a 'App::KSP_CKAN::Metadata::Ckan' object!") unless $ckan->DOES("App::KSP_CKAN::Metadata::Ckan");
   my $mimetype = mimetype( $file );
+
+  $self->logdie("Content type doesn't match metadata") 
+    unless ( $mimetype eq $ckan->download_content_type );
 
   my $headers = HTTP::Headers->new(
     'Content-Type'                => $mimetype,
@@ -238,13 +251,24 @@ method ckan_mirrored( :$ckan ) {
   $self->logdie("\$ckan isn't a 'App::KSP_CKAN::Metadata::Ckan' object!") 
     unless $ckan->DOES("App::KSP_CKAN::Metadata::Ckan");
   
-  my $res = $self->_ua->head($self->_download_uri( $ckan ));
+  my $res = $self->_ua->get($self->_metadata_uri($ckan));
 
-  if ($res->is_success) {
+  if ( $res->is_error ) {
+    $self->warn($res->message);
+    return 0;
+  }
+
+  my $data;
+  try {
+    $data = from_json($res->decoded_content);
+  } catch {
+    $self->logdie("Metadata JSON failed to parse");
+  };
+ 
+  if ( any { uc($_->{sha1}) eq $ckan->download_sha1 } @{$data->{files}} ) {
     return 1;
   }
 
-  $self->warn($res->message) if $res->is_error;
 
   return 0;
 }
