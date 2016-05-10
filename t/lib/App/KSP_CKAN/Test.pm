@@ -10,6 +10,7 @@ use File::Temp qw(tempdir);
 use File::Path qw(remove_tree mkpath);
 use File::chdir;
 use File::Copy::Recursive qw(dircopy dirmove);
+use File::Copy qw(copy);
 use Capture::Tiny qw(capture);
 use Moo;
 use namespace::clean;
@@ -117,13 +118,15 @@ Allows us to specify a different license.
 
 method create_ckan(
   :$file, 
-  :$valid     = 1, 
-  :$random    = 1, 
-  :$kind      = "package",
-  :$license   = '"CC-BY-NC-SA"',
-  :$download  = "https://example.com/example.zip",
+  :$valid       = 1, 
+  :$random      = 1, 
+  :$identifier  = "ExampleKAN", 
+  :$kind        = "package",
+  :$license     = '"CC-BY-NC-SA"',
+  :$download    = "https://example.com/example.zip",
+  :$sha256      = "1A2B3C4D5E1A2B3C4D5E",
 ) {
-  my $identifier = $valid ? "identifier" : "invalid_schema";
+  my $attribute = $valid ? "identifier" : "invalid_schema";
 
   # Allows us against a metapackage. TODO: make into valid metapackage
   my $package;
@@ -132,7 +135,7 @@ method create_ckan(
   } elsif ( $kind eq "nohash" ) {
     $package = qq|"download": "$download","download_content_type": "text/plain"|;
   } else {
-    $package = qq|"download": "$download","download_hash": { "sha1": "1A2B3C4D5E","sha256": "1A2B3C4D5E1A2B3C4D5E" }, "download_content_type": "application/zip"|;
+    $package = qq|"download": "$download","download_hash": { "sha1": "1A2B3C4D5E","sha256": "$sha256" }, "download_content_type": "application/zip"|;
   }
 
   # Lets us generate CKANs that are different.
@@ -147,7 +150,7 @@ method create_ckan(
 
   # Create the CKAN
   open my $in, '>', $file;
-  print $in qq|{"spec_version": 1, "$identifier": "ExampleKAN", "license": $license, "ksp_version": "0.90", "name": "Example KAN", "abstract": "It's a $rand example!", "author": "Techman83", "version": "1.0.0.1", $package, "resources": { "homepage": "https://example.com/homepage", "repository": "https://example.com/repository" }}|;
+  print $in qq|{"spec_version": 1, "$attribute": "$identifier", "license": $license, "ksp_version": "0.90", "name": "Example KAN", "abstract": "It's a $rand example!", "author": "Techman83", "version": "1.0.0.1", $package, "resources": { "homepage": "https://example.com/homepage", "repository": "https://example.com/repository" }}|;
   close $in;
   return;
 }
@@ -184,6 +187,7 @@ method create_config(:$optional = 1, :$nogh = 0) {
   if ($optional) {
     print $in "GH_token=123456789\n" if ! $nogh;
     print $in "working=".$self->_tmp."/working\n";
+    print $in "cache=".$self->_tmp."/cache\n";
     print $in "IA_collection=collection\n";
   }
 
