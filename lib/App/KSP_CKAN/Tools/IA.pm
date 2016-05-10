@@ -269,7 +269,6 @@ method ckan_mirrored( :$ckan ) {
     return 1;
   }
 
-
   return 0;
 }
 
