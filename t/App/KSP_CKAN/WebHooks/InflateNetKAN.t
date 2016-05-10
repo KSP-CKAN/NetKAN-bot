@@ -41,7 +41,7 @@ subtest 'Scalar Identifier' => sub {
       local $TODO = "This test is broken on travis for some reason." if ($ENV{TRAVIS});
       is($#files, 0, "A file was found");
     }
-    ok( -d $config->working."/cache", "NetKAN path set correctly" );
+    ok( -d $config->cache, "NetKAN cache path set correctly" );
   }
   
   $test->cleanup;
@@ -76,7 +76,7 @@ subtest 'Array of Identifiers' => sub {
       local $TODO = "This test is broken on travis for some reason." if ($ENV{TRAVIS});
       is($#files, 0, "A file was found");
     }
-    ok( -d $config->working."/cache", "NetKAN path set correctly" );
+    ok( -d $config->cache, "NetKAN cache path set correctly" );
   }
   $test->cleanup;
 };
