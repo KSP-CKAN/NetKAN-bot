@@ -5,10 +5,14 @@ use strict;
 use warnings;
 use autodie;
 use Method::Signatures 20140224;
-use File::chdir;
 use Carp qw( croak );
+use List::MoreUtils 'first_index';
+use Digest::file qw(digest_file_hex);
+use File::chdir;
+use File::Basename qw(basename);
 use File::Temp qw(tempdir);
 use File::Path qw(remove_tree);
+use File::Copy qw(copy);
 use App::KSP_CKAN::Tools::IA;
 use App::KSP_CKAN::Tools::Http;
 use App::KSP_CKAN::Metadata::Ckan;
@@ -67,13 +71,47 @@ method _load_ckan($ckanfile) {
 }
 
 # TODO: Could use some more logic here, maybe a while loop.
-method _check_overload($tmp) {
+method _check_overload {
   if ( $self->_ia->check_overload ) {
-    # Let's clean ourselves up first.
-    $self->_clean_tmp_dir($tmp);
-    $self->logdie("The Internet Archive is overloaded, try again later");
+    return 1;
   }
-  return;
+  return 0;
+}
+
+method _check_cached($hash) {
+  my @files = glob($self->config->cache."/*");
+  my $index = first_index { basename($_) =~ /^$hash/i } @files;
+  if ( $index != '-1' ) {
+    return $files[$index];
+  }
+  return 0;
+}
+
+method _check_file($file,$ckan) {
+  my $cached = $self->_check_cached($ckan->url_hash);
+
+  if ( $cached eq 0 ) {
+    $self->info("Not found in cache, downloading");
+    $self->_http->mirror(
+      url   => $ckan->download,
+      path  => $file,
+    );
+  } else {
+    $self->info("Download found as $cached");
+    copy($cached, $file) or $self->warn("Cache copy failed: $!");
+  }
+
+  if ( ! -f $file ) {
+    $self->warn("File was not able to be downloaded or copied");
+    return 0;
+  }
+
+  if ( $ckan->download_sha256 ne uc(digest_file_hex( $file, "SHA-256" )) ) {
+    $self->warn("SHA256 of file doesn't match metadata");
+    return 0;
+  }
+
+  return 1;
 }
 
 # TODO: A lot of this logic should be moved into the IA class. We could
@@ -85,26 +123,36 @@ method upload_ckan($ckanfile) {
   $self->logdie("Ckan '".$ckan->mirror_item."' cannot be mirrored") unless $ckan->can_mirror;
   my $tmp = $self->_tmp_dir;
   my $file = $tmp."/".$ckan->mirror_filename;
-  $self->_http->mirror(
-    url   => $ckan->download,
-    path  => $file,
-  );
-  $self->_check_overload($tmp);
+ 
+  if ( $self->_check_overload ) {
+    # Let's clean ourselves up first.
+    $self->_clean_tmp_dir($tmp);
+    $self->warn("The Internet Archive is overloaded, try again later");
+    return 0;
+  }
   
-  my $result = $self->_ia->put_ckan(
-    ckan => $ckan,
-    file => $file,
-  );
+  if ( $self->_ia->ckan_mirrored( ckan => $ckan ) ) {
+    $self->info($ckan->mirror_item." Already has a file mirrrored with the SHA1 hash of ".$ckan->download_sha1);
+    return 1;
+  }
   
-  # TODO: This needs a test, we weren't cleaning our temp files.
-  $self->_clean_tmp_dir($tmp);
-
+  my $result = 0;
+  
+  if ( $self->_check_file( $file, $ckan ) ) {
+    $result = $self->_ia->put_ckan(
+      ckan => $ckan,
+      file => $file,
+    );
+  }
+  
   if ( $result ) {
     $self->info($ckan->mirror_item." mirrored to the Internet Archive successfully @ ".$ckan->mirror_url);
     return 1;
-  } else {
-    $self->warn($ckan->mirror_item." failed to mirror to the Internet Archive");
   }
+  
+  # TODO: This needs a test, we weren't cleaning our temp files.
+  $self->_clean_tmp_dir($tmp);
+  $self->warn($ckan->mirror_item." failed to mirror to the Internet Archive");
   return 0;
 }
 
