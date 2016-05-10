@@ -23,6 +23,8 @@ is($config->NetKAN, $test->_tmp."/data/NetKAN", "NetKAN loaded from config");
 is($config->GH_token, "123456789", "GH_token loaded from config");
 is($config->working, $test->_tmp."/working", "working loaded from config");
 is(-d $config->working, 1, "working was automatically created");
+is($config->cache, $test->_tmp."/cache", "cache loaded from config");
+is(-d $config->cache, 1, "cache was automatically created");
 is($config->netkan_exe, "https://ckan-travis.s3.amazonaws.com/netkan.exe", "netkan_exe loaded from config");
 is($config->ckan_validate, "https://raw.githubusercontent.com/KSP-CKAN/CKAN/master/bin/ckan-validate.py", "ckan_validate loaded from config");
 is($config->ckan_schema, "https://raw.githubusercontent.com/KSP-CKAN/CKAN/master/CKAN.schema", "ckan_schema loaded from config");
@@ -38,6 +40,7 @@ $config = App::KSP_CKAN::Tools::Config->new(
 
 is($config->GH_token, 0, "GH_token returns false");
 is($config->working, $ENV{HOME}."/CKAN-working", "working default generated");
+is($config->cache, $ENV{HOME}."/CKAN-working/cache", "cache default generated");
 is($config->IA_collection, "test_collection", "IA_collection default generated");
 
 $test->cleanup;

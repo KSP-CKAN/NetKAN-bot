@@ -40,6 +40,7 @@ has 'GH_token'      => ( is => 'ro', lazy => 1, builder => 1 );
 has 'IA_access'     => ( is => 'ro', lazy => 1, builder => 1 );
 has 'IA_secret'     => ( is => 'ro', lazy => 1, builder => 1 );
 has 'IA_collection' => ( is => 'ro', lazy => 1, builder => 1 );
+has 'cache'         => ( is => 'ro', lazy => 1, builder => 1 );
 has 'working'       => ( is => 'ro', lazy => 1, builder => 1 );
 has 'debugging'     => ( is => 'ro', default => sub { 0 } );
 
@@ -95,6 +96,20 @@ method _build_GH_token {
   } else {
     return $self->_config->{_}{'GH_token'};
   }
+}
+
+method _build_cache {
+  my $cache;
+  if ( ! $self->_config->{_}{'cache'} ) {
+    $cache = $self->working."/cache";
+  } else {
+    $cache = $self->_config->{_}{'cache'};
+  }
+
+  if ( ! -d $cache ) {
+    mkpath($cache);
+  }
+  return $cache;
 }
 
 method _build_working {
