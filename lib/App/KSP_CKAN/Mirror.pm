@@ -120,6 +120,7 @@ method _check_file($file,$ckan) {
 #       required attribute of App::KSP_CKAN::Mirror::$Backend
 method upload_ckan($ckanfile) {
   my $ckan = $self->_load_ckan($ckanfile);
+  # TODO: Deaths are painful, we should avoid those.
   $self->logdie("Ckan '".$ckan->mirror_item."' cannot be mirrored") unless $ckan->can_mirror;
   my $tmp = $self->_tmp_dir;
   my $file = $tmp."/".$ckan->mirror_filename;
