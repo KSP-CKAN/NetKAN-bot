@@ -68,6 +68,10 @@ post '/gh/:task' => sub {
     inflate_github(commits => \@commits);
   } elsif ( $task eq "mirror" ) {
     mirror_github(commits => \@commits);
+  } elsif ( $task eq "release" ) {
+    send_error("param 'indentifier' required. eg http://netkan.ksp-ckan.org/gh/release?identifier=AwesomeMod", 400) unless defined params->{identifier};
+    my @identifiers = params->{identifier};
+    inflate_netkans(identifiers => \@identifiers);
   } else {
     send_error "Unknown task '".$task."', accepted tasks are 'inflate' and 'mirror'", 400;
   }
