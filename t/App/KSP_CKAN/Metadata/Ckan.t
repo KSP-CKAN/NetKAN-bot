@@ -15,6 +15,7 @@ use_ok("App::KSP_CKAN::Metadata::Ckan");
 $test->create_ckan( file => $test->tmp."/package.ckan", random => 0 );
 $test->create_ckan( file => $test->tmp."/metapackage.ckan", kind => "metapackage" );
 $test->create_ckan( file => $test->tmp."/nohash.ckan", kind => "nohash" );
+$test->create_ckan( file => $test->tmp."/escaped.ckan", download => 'https://example.com/url%20with%40escape%24characters%23' );
 $test->create_ckan( file => $test->tmp."/no_mirror.ckan", license => '"restricted"', download => "");
 $test->create_ckan( file => $test->tmp."/hash.ckan", download => "https://github.com/pjf/DogeCoinFlag/releases/download/v1.02/DogeCoinFlag-1.02.zip",  license => '[ "restricted", "GPL-2.0" ]' );
 
@@ -49,6 +50,7 @@ subtest 'metapackage' => sub {
 my $no_mirror = App::KSP_CKAN::Metadata::Ckan->new( file => $test->tmp."/no_mirror.ckan" );
 my $hash = App::KSP_CKAN::Metadata::Ckan->new( file => $test->tmp."/hash.ckan" );
 my $no_hash = App::KSP_CKAN::Metadata::Ckan->new( file => $test->tmp."/nohash.ckan");
+my $escaped = App::KSP_CKAN::Metadata::Ckan->new( file => $test->tmp."/escaped.ckan");
 subtest 'mirror' => sub {
   # Can mirror
   is($package->can_mirror, 1, "Package can be mirrored");
@@ -60,6 +62,7 @@ subtest 'mirror' => sub {
   
   # Hashes
   is($hash->url_hash, "6F8BEBCB", "Hash '".$hash->url_hash."' calculated correctly");
+  is($escaped->url_hash, "4CB16814", "Hash '".$escaped->url_hash."' calculated correctly from encoded URL - #42");
   
   # Filenames
   is(

@@ -9,6 +9,7 @@ use Config::JSON; # Saves us from file handling
 use List::MoreUtils 'any';
 use Carp qw( croak );
 use Digest::SHA 'sha1_hex';
+use URI::Escape 'uri_unescape';
 use Scalar::Util 'reftype';
 use Moo;
 use namespace::clean;
@@ -245,7 +246,7 @@ method 'CreateURLHash'.
 =cut
 
 method url_hash {
-  my $hash = sha1_hex($self->download);
+  my $hash = sha1_hex(uri_unescape($self->download));
   $hash =~ s/-//g;
   return uc(substr $hash, 0, 8);
 }
