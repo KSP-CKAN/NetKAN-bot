@@ -48,7 +48,7 @@ $netkan->full_index;
      
 }
 
-ok( -d $config->working."/cache", "NetKAN path set correctly" );
+ok( -d $config->cache, "NetKAN cache path set correctly" );
 
 $test->cleanup;
 

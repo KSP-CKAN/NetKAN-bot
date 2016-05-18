@@ -10,6 +10,7 @@ use File::Temp qw(tempdir);
 use File::Path qw(remove_tree mkpath);
 use File::chdir;
 use File::Copy::Recursive qw(dircopy dirmove);
+use File::Copy qw(copy);
 use Capture::Tiny qw(capture);
 use Moo;
 use namespace::clean;
@@ -81,7 +82,7 @@ method create_repo($repo) {
 
 =method create_ckan
   
-  $test->create_ckan("Path to file");
+  $test->create_ckan(file => "/path/to/file");
 
 Creates an example ckan that would pass validation at the specified
 path.
@@ -89,22 +90,67 @@ path.
 Takes an optional extra argument, that if set to false will create
 a ckan that won't pass schema validation.
   
-  $test->create_ckan("Path to file", 0);
+  $test->create_ckan( file => "/path/to/file", valid => 0);
+
+=over
+
+=item file
+
+Path and file we are creating.
+
+=item valid
+
+Defaults to true. False value will create a CKAN that will fail
+validation against the schema.
+
+=item kind
+
+Allows us to specify a different kind of package. 'metadata' is the 
+only accepted one at the moment.
+
+=item license
+
+Allows us to specify a different license.
+
+=back
 
 =cut
 
-method create_ckan($file, $valid = 1) {
-  my $identifier = $valid ? "identifier" : "invalid_schema";
+method create_ckan(
+  :$file, 
+  :$valid       = 1, 
+  :$random      = 1, 
+  :$identifier  = "ExampleKAN", 
+  :$kind        = "package",
+  :$license     = '"CC-BY-NC-SA"',
+  :$download    = "https://example.com/example.zip",
+  :$sha256      = "1A2B3C4D5E1A2B3C4D5E",
+) {
+  my $attribute = $valid ? "identifier" : "invalid_schema";
+
+  # Allows us against a metapackage. TODO: make into valid metapackage
+  my $package;
+  if ( $kind eq "metapackage" ) {
+    $package = '"kind": "metapackage"';
+  } elsif ( $kind eq "nohash" ) {
+    $package = qq|"download": "$download","download_content_type": "text/plain"|;
+  } else {
+    $package = qq|"download": "$download","download_hash": { "sha1": "1A2B3C4D5E","sha256": "$sha256" }, "download_content_type": "application/zip"|;
+  }
 
   # Lets us generate CKANs that are different.
   # http://www.perlmonks.org/?node_id=233023
   my @chars = ("A".."Z", "a".."z");
   my $rand;
-  $rand .= $chars[rand @chars] for 1..8;
+  if ( $random ) {
+    $rand .= $chars[rand @chars] for 1..8;
+  } else {
+    $rand = "random";
+  }
 
   # Create the CKAN
   open my $in, '>', $file;
-  print $in qq|{"spec_version": 1, "$identifier": "ExampleKAN", "license": "CC-BY-NC-SA", "ksp_version": "0.90", "name": "Example KAN", "abstract": "It's a $rand example!", "author": "Techman83", "version": "1.0.0.1", "download": "https://example.com/example.zip"}|;
+  print $in qq|{"spec_version": 1, "$attribute": "$identifier", "license": $license, "ksp_version": "0.90", "name": "Example KAN", "abstract": "It's a $rand example!", "author": "Techman83", "version": "1.0.0.1", $package, "resources": { "homepage": "https://example.com/homepage", "repository": "https://example.com/repository" }}|;
   close $in;
   return;
 }
@@ -134,11 +180,15 @@ method create_config(:$optional = 1, :$nogh = 0) {
   print $in "netkan_exe=https://ckan-travis.s3.amazonaws.com/netkan.exe\n";
   print $in "ckan_validate=https://raw.githubusercontent.com/KSP-CKAN/CKAN/master/bin/ckan-validate.py\n";
   print $in "ckan_schema=https://raw.githubusercontent.com/KSP-CKAN/CKAN/master/CKAN.schema\n";
+  print $in "IA_access=12345678\n";
+  print $in "IA_secret=87654321\n";
   
   # TODO: This is a little ugly.
   if ($optional) {
     print $in "GH_token=123456789\n" if ! $nogh;
     print $in "working=".$self->_tmp."/working\n";
+    print $in "cache=".$self->_tmp."/cache\n";
+    print $in "IA_collection=collection\n";
   }
 
   close $in;

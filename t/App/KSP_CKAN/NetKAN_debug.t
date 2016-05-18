@@ -47,7 +47,7 @@ $netkan->full_index;
   ok(! -d  "CKAN-meta/DogeCoinFlag", "No metadata commited");
 }
 
-#$test->cleanup;
+$test->cleanup;
 
 done_testing();
 __END__

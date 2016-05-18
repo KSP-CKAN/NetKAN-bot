@@ -1,0 +1,40 @@
+#!/usr/bin/env perl
+
+use v5.010;
+use strict;
+use warnings;
+use Dancer2 appname => "xKanHooks";
+use File::Path qw(mkpath);
+
+# PODNAME: ckan-webhooks
+
+# ABSTRACT: ckan-webhooks - Small webserver for accepting webhooks
+
+# VERSION
+
+# TODO: Investigate config passing
+$ENV{XKAN_GHSECRET} or die 'XKAN_GHSECRET needs to be set';
+
+if ( -e "/tmp/xKan_netkan.lock" ) {
+  unlink "/tmp/xKan_netkan.lock";
+}
+
+# TODO: This could use a lot of improvement.
+if (config->{environment} eq 'development') {
+  use lib 'lib/';
+  set logger => "Console";
+} else {
+  if ( ! -d $ENV{HOME}."/CKAN-Webhooks" ) {
+    mkpath( $ENV{HOME}."/CKAN-Webhooks/" );
+  }
+
+  set appdir  => $ENV{HOME}."/CKAN-Webhooks";
+  set logger => "File";
+  config->{logger}{log_level} = "info";
+  config->{logger}{location} = config->{appdir};
+}
+
+set serializer => 'JSON';
+
+use App::KSP_CKAN::WebHooks;
+dance;
