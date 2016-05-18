@@ -59,7 +59,7 @@ post '/gh/:task' => sub {
     @commits = @{from_json(request->body)->{commits}};
   };
 
-  if ($#commits == -1) {
+  if ( $#commits == -1 && $task ne "release" ) {
     info("No commits received"); 
     return { "message" => "No add/remove commits received" };
   }
