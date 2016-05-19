@@ -80,6 +80,15 @@ Returns the homepage url or 0.
 
 Returns the download url or 0.
 
+=item version
+
+Returns the version field of the loaded CKAN.
+
+=item escaped_version
+
+Returns the version field of the loaded CKAN with the colons replaced
+with dashes.
+
 =back
 
 =cut
@@ -100,6 +109,7 @@ has 'homepage'              => ( is => 'ro', lazy => 1, builder => 1 );
 has 'repository'            => ( is => 'ro', lazy => 1, builder => 1 );
 has 'license'               => ( is => 'ro', lazy => 1, builder => 1 );
 has 'version'               => ( is => 'ro', lazy => 1, builder => 1 );
+has 'escaped_version'       => ( is => 'ro', lazy => 1, builder => 1 );
 
 # TODO: We're already using file slurper + JSON elsewhere. We should
 #       pick one method for consistency.
@@ -165,6 +175,13 @@ method _build_homepage {
 
 method _build_repository {
  return $self->_raw->{config}{resources}{repository};
+}
+
+method _build_escaped_version {
+  # Epochs in the version appear as a colon.
+  my $version = $self->version;
+  $version =~ s/:/-/g;
+  return $version;
 }
 
 =method licenses
@@ -260,7 +277,7 @@ Produces an item name based of the 'identifier' and 'version'.
 =cut
 
 method mirror_item {
-  return $self->identifier."-".$self->version;
+  return $self->identifier."-".$self->escaped_version;
 }
 
 =method mirror_filename
@@ -283,7 +300,7 @@ method mirror_filename {
   return 
     substr($self->download_sha1,0,8)."-"
     .$self->identifier."-"
-    .$self->version."."
+    .$self->escaped_version."."
     .$self->extension($self->download_content_type);
 }
 
@@ -297,7 +314,7 @@ Produces a mirror url based of the 'identifier' and 'version'.
 
 method mirror_url {
   # TODO: Maybe not hardcode this.
-  return "https://archive.org/details/".$self->identifier."-".$self->version;
+  return "https://archive.org/details/".$self->identifier."-".$self->escaped_version;
 }
 
 with('App::KSP_CKAN::Roles::Licenses','App::KSP_CKAN::Roles::FileServices');

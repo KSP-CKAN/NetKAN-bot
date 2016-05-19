@@ -17,9 +17,11 @@ $test->create_ckan( file => $test->tmp."/metapackage.ckan", kind => "metapackage
 $test->create_ckan( file => $test->tmp."/nohash.ckan", kind => "nohash" );
 $test->create_ckan( file => $test->tmp."/escaped.ckan", download => 'https://example.com/url%20with%40escape%24characters%23' );
 $test->create_ckan( file => $test->tmp."/no_mirror.ckan", license => '"restricted"', download => "");
+$test->create_ckan( file => $test->tmp."/epoch.ckan", version => "3:0.15.6.5");
 $test->create_ckan( file => $test->tmp."/hash.ckan", download => "https://github.com/pjf/DogeCoinFlag/releases/download/v1.02/DogeCoinFlag-1.02.zip",  license => '[ "restricted", "GPL-2.0" ]' );
 
 my $package = App::KSP_CKAN::Metadata::Ckan->new( file => $test->tmp."/package.ckan");
+my $epoch = App::KSP_CKAN::Metadata::Ckan->new( file => $test->tmp."/epoch.ckan");
 subtest 'package' => sub {  
   is($package->identifier, 'ExampleKAN', "Package identifier successfully retrieved");
   is($package->kind, 'package', "Kind successfully retrieved");
@@ -34,6 +36,8 @@ subtest 'fields' => sub {
   is($package->name, "Example KAN", "Name successfully retrieved");
   is($package->license, "CC-BY-NC-SA", "License successfully retrieved");
   is($package->version, "1.0.0.1", "Version successfully retrieved");
+  is($epoch->escaped_version, "3-0.15.6.5", "Escaped version successfully retrieved #47");
+  is($epoch->version, "3:0.15.6.5", "Unescaped version successfully retrieved #47");
   is($package->download_sha1, '1A2B3C4D5E', "Download sha1 successfully retrieved");
   is($package->download_sha256, '1A2B3C4D5E1A2B3C4D5E', "Download sha256 successfully retrieved");
   is($package->download_content_type, 'application/zip', "Download content type successfully retrieved");
@@ -76,6 +80,11 @@ subtest 'mirror' => sub {
     "Filename '".$hash->mirror_filename."' produced correctly"
   );
   is($no_hash->mirror_filename, 0, "Content type not applicable for producing a filename");
+  is(
+    $epoch->mirror_filename, 
+    "1A2B3C4D-ExampleKAN-3-0.15.6.5.zip", 
+    "Filename with epoch '".$epoch->mirror_filename."' produced correctly #47"
+  );
 
   # Item names
   is(
@@ -83,12 +92,22 @@ subtest 'mirror' => sub {
     "ExampleKAN-1.0.0.1",
     "Item name '".$package->mirror_item."' produced correctly"
   );
+  is(
+    $epoch->mirror_item,
+    "ExampleKAN-3-0.15.6.5",
+    "Item name with epoch '".$epoch->mirror_item."' produced correctly #47"
+  );
   
   # Mirror URL
   is(
     $package->mirror_url,
     "https://archive.org/details/ExampleKAN-1.0.0.1",
     "URL '".$package->mirror_item."' produced correctly"
+  );
+  is(
+    $epoch->mirror_url,
+    "https://archive.org/details/ExampleKAN-3-0.15.6.5",
+    "URL with epoch '".$epoch->mirror_item."' produced correctly #47"
   );
 };
 
