@@ -4,9 +4,13 @@ use v5.010;
 use strict;
 use autodie qw(:all);
 use App::KSP_CKAN::Tools::Config;
+use App::KSP_CKAN::Tools::Git;
 use App::KSP_CKAN::Mirror;
+use Try::Tiny;
 use Getopt::Long;
 use File::Spec;
+use File::chdir;
+use File::Path qw( mkpath );
 
 # PODNAME: mirror-ckan
 
@@ -48,24 +52,26 @@ $PROGNAME ||= 'mirror-ckan';
 my $DEBUG  = 0;
 my $filename;
 
-# TODO: It'd be nice to specify a path/multiple files 
-my $getopts_rc = GetOptions(
-  "version"       => \&version,
-  "debug!"        => \$DEBUG,
-  "ckan=s"        => \$filename,  
-
-  "help|?"        => \&print_usage,
-);
-
 # TODO: Allow config to be specified
+my $working = $ENV{HOME}."/CKAN-Webhooks/mirror";
+if ( ! -d $working ) {
+  mkpath($working);
+}
 my $config = App::KSP_CKAN::Tools::Config->new(
+  working   => $working,
   debugging => $DEBUG,
 );
 my $mirror = App::KSP_CKAN::Mirror->new( config => $config ); 
 
-$mirror->upload_ckan($filename);
+# TODO: It'd be nice to specify a path/multiple files 
+my $getopts_rc = GetOptions(
+  "version"       => \&version,
+  "debug!"        => \$DEBUG,
+  "ckan=s"        => \$filename,
+  "yesterday"     => \&yesterday,
 
-exit 0;
+  "help|?"        => \&print_usage,
+);
 
 sub version {
   $::VERSION ||= "Unreleased";
@@ -79,6 +85,8 @@ sub print_usage {
 
   mirror-ckan --ckan /path/to/file.ckan   : Takes a ckan file and mirrors it to the
                                           : Internet Archive.
+  mirror-ckan --yesterday                 : Scans CKAN-meta for files commited the day
+                                          : before and attempts to archive them.
 
   Debugging commands:
     
@@ -91,4 +99,28 @@ sub print_usage {
   exit 1;
 }
 
+sub yesterday {
+  my $git = App::KSP_CKAN::Tools::Git->new(
+    remote  => $config->CKAN_meta,
+    local   => $config->working,
+  );
+  my @files = $git->yesterdays_diff;
+  local $CWD = $config->working."/".$git->working;
+  
+  foreach my $file ( @files ) {
+    if ( $file =~ /\.ckan$/ && -e $file ) {
+      say "Checking mirror for $file" if $DEBUG;
+      try {
+        $mirror->upload_ckan($file);
+      };
+    }
+  }
+
+  exit 0;
+}
+
+# This is the default 
+$mirror->upload_ckan($filename);
+
+exit 0;
 __END__

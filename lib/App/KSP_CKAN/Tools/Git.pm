@@ -8,7 +8,7 @@ use Method::Signatures 20140224;
 use Carp qw(croak);
 use Try::Tiny;
 use Git::Wrapper;
-use Capture::Tiny qw(capture);
+use Capture::Tiny qw(capture capture_stdout);
 use File::chdir;
 use File::Path qw(remove_tree mkpath);
 use Moo;
@@ -246,6 +246,25 @@ method pull(:$ours?,:$theirs?) {
     $self->_git->pull;
   }
   return;
+}
+
+=method yesterdays_diff
+
+  $git->yesterdays_diff;
+
+Produces a list of files of changes since yesterday.
+
+git diff $(git rev-list -n1 --before="yesterday" master) --name-only
+
+=cut
+
+# TODO: It'd be cool to be able to test this
+method yesterdays_diff {
+  my $branch = $self->branch;
+  local $CWD = $self->local."/".$self->working;
+  my $changed = capture_stdout { system("git diff \$(git rev-list -n1 --before=\"yesterday\" $branch) --name-only") };
+  chomp $changed;
+  return split("\n", $changed);
 }
 
 1;
