@@ -54,13 +54,13 @@ my $Status = sub {
 };
 
 has 'config'              => ( is => 'ro', required => 1, isa => $Ref );
-has 'netkan'              => ( is => 'ro', required => 1 );
-has 'cache'               => ( is => 'ro', default => sub { File::Spec->tmpdir()."/NetKAN-cache"; } );
 has 'file'                => ( is => 'ro', required => 1 );
 has 'ckan_meta'           => ( is => 'ro', required => 1, isa => $Meta );
 has 'status'              => ( is => 'rw', required => 1, isa => $Status );
-has 'token'               => ( is => 'ro' );
 has 'rescan'              => ( is => 'ro', default => sub { 1 } );
+has 'token'               => ( is => 'ro', lazy => 1, builder => 1 );
+has 'netkan'              => ( is => 'ro', lazy => 1, builder => 1 );
+has 'cache'               => ( is => 'ro', lazy => 1, builder => 1 );
 has '_ckan_meta_working'  => ( is => 'ro', lazy => 1, builder => 1 );
 has '_output'             => ( is => 'ro', lazy => 1, builder => 1 );
 has '_cli'                => ( is => 'ro', lazy => 1, builder => 1 );
@@ -97,6 +97,18 @@ method _build__cli {
   } else {
     return $self->netkan." --outputdir=".$self->_output." --cachedir=".$self->_cache." ".$self->file;
   }
+}
+
+method _build_cache {
+  return $self->config->cache;
+}
+
+method _build_token {
+  return $self->config->GH_token;
+}
+
+method _build_netkan {
+  return $self->config->working."/netkan.exe";
 }
 
 method _build__status {
