@@ -62,14 +62,8 @@ method inflate($identifiers) {
       next;
     }
 
-    # TODO: We're already passing in the config, is it really
-    # necessary to pass in each of the other things as attributes?
-    my $config = $self->config;
     my $netkan = App::KSP_CKAN::Tools::NetKAN->new(
-      config      => $config,
-      netkan      => $config->working."/netkan.exe",
-      cache       => $config->cache,
-      token       => $config->GH_token,
+      config      => $self->config,
       file        => $file,
       ckan_meta   => $self->_CKAN_meta,
       status      => $self->_status,
