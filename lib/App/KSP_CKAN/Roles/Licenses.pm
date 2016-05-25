@@ -102,6 +102,7 @@ method _build__license_urls {
     "W3C"               => 'https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document',
     "Zlib"              => 'http://www.zlib.net/zlib_license.html',
     "Zope"              => 'http://old.zope.org/Resources/License.1',
+    "Unlicense"         => 'https://unlicense.org/UNLICENSE',
   }
 }
 
@@ -144,6 +145,7 @@ method redistributable_licenses {
     "Zlib",
     "Zope",
     "WTFPL",
+    "Unlicense",
     "open-source", "unrestricted" ];
 }
 

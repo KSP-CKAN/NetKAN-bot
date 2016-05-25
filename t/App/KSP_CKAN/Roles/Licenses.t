@@ -40,6 +40,7 @@ subtest 'licenses' => sub {
       "Zlib",
       "Zope",
       "WTFPL",
+      "Unlicense",
       "open-source", "unrestricted" ];
   
   my @test = $licenses->redistributable_licenses;
