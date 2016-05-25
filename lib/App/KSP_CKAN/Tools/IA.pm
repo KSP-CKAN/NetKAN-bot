@@ -265,7 +265,7 @@ method ckan_mirrored( :$ckan ) {
     $self->logdie("Metadata JSON failed to parse");
   };
  
-  if ( any { uc($_->{sha1}) eq $ckan->download_sha1 } @{$data->{files}} ) {
+  if ( any { defined $_->{sha1} && uc($_->{sha1}) eq $ckan->download_sha1 } @{$data->{files}} ) {
     return 1;
   }
 
