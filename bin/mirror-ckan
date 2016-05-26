@@ -114,6 +114,7 @@ sub yesterday {
         $mirror->upload_ckan($file);
       };
     }
+    sleep 1; # We're going to be checking 100s, lets not overwhelm the API
   }
 
   exit 0;
