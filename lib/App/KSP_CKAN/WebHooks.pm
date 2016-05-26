@@ -55,13 +55,23 @@ post '/gh/:task' => sub {
   } 
 
   my @commits;
+  my $sender;
+  my $json;
   try {
-    @commits = @{from_json(request->body)->{commits}};
+    $json = from_json(request->body);
+    @commits = @{$json->{commits}};
+    $sender = $json->{sender}{login};
   };
 
   if ( $#commits == -1 && $task ne "release" ) {
     info("No commits received"); 
     return { "message" => "No add/remove commits received" };
+  }
+
+  if ( defined $sender && $sender eq 'kspckan-crawler' ) {
+    info("Commits sent by crawler, skipping on demand mirror");
+    status(204);
+    return;
   }
 
   if ( $task eq "inflate" ) {
