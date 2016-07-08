@@ -174,6 +174,52 @@ with optional values.
 
 =cut
 
+=method create_netkan
+  
+  $test->create_netkan(file => "/path/to/file");
+
+Creates an example netkan that would pass validation at the specified
+path.
+
+=over
+
+=item file
+
+Path and file we are creating.
+
+=item identifier
+
+Allows us to specify a different identifier
+
+=item kref
+
+Allows us to specify a different kref.
+
+=item vref
+
+Allows us to specify a different or undef vref.
+
+=back
+
+=cut
+
+method create_netkan(
+  :$file, 
+  :$identifier  = "DogeCoinFlag", 
+  :$kref        = "#/ckan/github/pjf/DogeCoinFlag",
+  :$vref        = "#/ckan/ksp-avc",
+  :$staging     = 0,
+) {
+  my $vref_field = $vref ? qq|"\$vref" : "$vref",| : "";
+  my $staging_field = $vref ? "" : qq|,"staging" : 1|;
+
+  # Create the NetKAN
+  open my $in, '>', $file;
+  print $in qq|{"spec_version": 1, "identifier": "$identifier", "\$kref" : "$kref", $vref_field "license": "CC-BY", "ksp_version": "any", "name": "Example NetKAN", "abstract": "It's an example!", "author": "daviddwk", "resources": { "homepage": "https://www.reddit.com/r/dogecoin/comments/1tdlgg/i_made_a_more_accurate_dogecoin_and_a_ksp_flag/" }$staging_field }|;
+  close $in;
+  return;
+}
+
 method create_config(:$optional = 1, :$nogh = 0) {
   open my $in, '>', $self->_tmp."/.ksp-ckan";
   print $in "CKAN_meta=".$self->_tmp."/data/CKAN-meta\n";
