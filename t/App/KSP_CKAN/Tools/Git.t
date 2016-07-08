@@ -4,10 +4,12 @@ use lib 't/lib/';
 
 use strict;
 use warnings;
+use v5.010;
 use Test::Most;
 use Test::Warnings;
 use File::chdir;
 use File::Path qw(mkpath remove_tree);
+use Digest::file qw(digest_file_hex);
 use App::KSP_CKAN::Test;
 
 # Setup our environment
@@ -132,6 +134,34 @@ subtest 'Git Errors' => sub {
     clean => 1,
   );
   dies_ok { $path_error->pull } 'Non existent repo fails loudly';
+};
+
+subtest 'Staged Commit' => sub {
+  my $file = $test->tmp."/CKAN-meta/staged.ckan";
+  my $identifier = "Testing";
+  $test->create_ckan( file => $file );
+  $git->add($file);
+  my $hash = digest_file_hex( $file, "SHA-1" );
+  $git->staged_commit(
+    file        => $file,
+    identifier  => $identifier,
+  );
+  $git->_clean;
+
+  is($git->_build_branch, "master", "We were returned to the master branch");
+  isnt(-e $file, 1, "Our staged file wasn't commited to master");
+  
+  $git->checkout_branch("staging");
+  is($git->_build_branch, "staging", "We were returned to the staging branch");
+  $git->_clean;
+  is(digest_file_hex( $file, "SHA-1" ), $hash, "Our staging branch was commited to");
+  
+  $git->checkout_branch($identifier);
+  is($git->_build_branch, $identifier, "We were returned to the $identifier branch");
+  $git->_clean;
+  is(digest_file_hex( $file, "SHA-1" ), $hash, "Our $identifier branch was commited to");
+
+  $git->checkout_branch($git->branch);
 };
 
 # Cleanup after ourselves

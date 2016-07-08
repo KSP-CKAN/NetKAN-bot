@@ -202,6 +202,85 @@ method commit(:$all = 0, :$file = 0, :$message = "Generic Commit") {
   }
 }
 
+=method checkout_branch
+
+  $git->checkout_branch("staging")
+
+Checks out the destination branch if it exists else creates it and
+checks it out.
+
+=cut
+
+method checkout_branch($branch) {
+  local $CWD = $self->local."/".$self->working;
+  capture { system("git checkout $branch 2>/dev/null || git checkout -b $branch") };
+}
+
+=method cherry_pick
+
+  $git->cherry_pick($commit);
+
+Cherry picks a commit into the current branch.
+
+=cut
+
+method cherry_pick($commit) {
+  $self->_git->RUN("cherry-pick", $commit);
+  return;
+}
+
+=method staged_commit
+
+  $git->staged_commit( 
+    file        => "/path/to/ExampleNetKAN.netkan",
+    identifier  => "ExampleNetKAN", 
+    message     => "NetKAN bot loves to commit!",
+  );
+
+Performs a commit to the staging branch, then checks out an identifier
+branch and cherry-picks the commit from the previous commit to staging.
+
+=cut
+
+# TODO: The staging branch is will reflect the first point it branched
+#       from master on the NetKAN bot. So to use the staging branch
+#       it must accompany the primary repository in ckan. It'll worth
+#       seeing how this works in practice and think on how to solve
+#       them drifting.
+
+method staged_commit(:$identifier, :$file, :$message = "Generic Commit") {
+  # NOTE: Not 100% happy with this line, but if our branch value isn't
+  #       populated we'll end up stuck on the last identifier that was 
+  #       checked out.
+  $self->branch;
+
+  # Commit to staging branch
+  $self->checkout_branch("staging");
+  $self->pull( ours => 1 );
+  $self->commit(
+    file    => $file,
+    message => $message,
+  );
+  $self->_git->push("origin","staging");
+ 
+  # Get the commit ID of the staged CKAN 
+  my $commit = $self->last_commit;
+  
+  # NOTE: We need to go back to our original branch to avoid
+  #       diverging from our staging branch
+  $self->checkout_branch($self->branch);
+
+  # Commit to identifier branch
+  $self->checkout_branch($identifier);
+  $self->pull( ours => 1 );
+  $self->cherry_pick($commit);
+  $self->_git->push("origin",$identifier);
+
+  # Return to our original branch
+  $self->checkout_branch($self->branch);
+  return;
+}
+
 =method reset
   
   $git->reset( file => $file );
@@ -246,6 +325,24 @@ method pull(:$ours?,:$theirs?) {
     $self->_git->pull;
   }
   return;
+}
+
+=method last_commit
+  
+  $git->last_commit;
+
+Will return the full hash of the last commit.
+
+=cut
+
+method last_commit {
+  # NOTE: We could have used the builtin $git->RUN('log', '--format=%H'))[0],
+  #       but it parses the entire commit history which at ~19000 commits
+  #       takes about 120ms, this takes less than 2ms.
+  local $CWD = $self->local."/".$self->working;
+  my $commit = capture_stdout { system("git", "log", "--no-patch", "HEAD^..HEAD", '--format=%H') };
+  chomp($commit);
+  return $commit;
 }
 
 =method yesterdays_diff
