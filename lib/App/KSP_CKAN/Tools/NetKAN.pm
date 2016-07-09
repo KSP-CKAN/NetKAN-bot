@@ -122,7 +122,7 @@ method _build__netkan_metadata {
   return App::KSP_CKAN::Metadata::NetKAN->new( file => $self->file );
 }
 
-method _build__netkan_metadata {
+method _build__github {
   return App::KSP_CKAN::Tools::GitHub->new( config  => $self->config );
 }
 
