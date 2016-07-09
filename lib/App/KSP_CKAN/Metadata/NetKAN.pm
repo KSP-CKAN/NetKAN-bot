@@ -49,6 +49,11 @@ Returns the $kref or undef for the loaded NetKAN.
 
 Returns the $vref or undef for the loaded NetKAN.
 
+=item staging
+
+Returns false if not in metadata, else returns the value in the
+metadata.
+
 =item license
 
 Returns the license for the loaded NetKAN.

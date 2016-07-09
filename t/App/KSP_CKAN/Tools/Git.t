@@ -108,7 +108,7 @@ is($git->changed, 2, "File delete not commited");
 
 # Test cleanup
 $test->create_ckan( file => $test->tmp."/CKAN-meta/cleaned_file.ckan" );
-$git->_clean;
+$git->_hard_clean;
 isnt(-e $test->tmp."/CKAN-meta/cleaned_file.ckan", 1, "Cleanup Successful");
 
 subtest 'Git Errors' => sub {
@@ -146,19 +146,19 @@ subtest 'Staged Commit' => sub {
     file        => $file,
     identifier  => $identifier,
   );
-  $git->_clean;
+  $git->_hard_clean;
 
-  is($git->_build_branch, "master", "We were returned to the master branch");
+  is($git->_build_branch, "master", "We started on the master branch");
   isnt(-e $file, 1, "Our staged file wasn't commited to master");
   
   $git->checkout_branch("staging");
-  is($git->_build_branch, "staging", "We were returned to the staging branch");
-  $git->_clean;
+  is($git->_build_branch, "staging", "We are on to the staging branch");
+  $git->_hard_clean;
   is(digest_file_hex( $file, "SHA-1" ), $hash, "Our staging branch was commited to");
   
   $git->checkout_branch($identifier);
-  is($git->_build_branch, $identifier, "We were returned to the $identifier branch");
-  $git->_clean;
+  is($git->_build_branch, $identifier, "We are on the $identifier branch");
+  $git->_hard_clean;
   is(digest_file_hex( $file, "SHA-1" ), $hash, "Our $identifier branch was commited to");
 
   $git->checkout_branch($git->branch);

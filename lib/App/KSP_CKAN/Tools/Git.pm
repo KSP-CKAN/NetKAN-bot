@@ -81,7 +81,7 @@ method _build__git {
   }
 
   if ($self->clean) {
-    $self->_clean;
+    $self->_hard_clean;
   }
 
   return Git::Wrapper->new({
@@ -107,14 +107,14 @@ method _clone {
   return;
 }
 
-method _clean {
+method _hard_clean {
   # TODO: We could fail here too, we should return as such.
   # NOTE: We've not instantiated a git object at this point, so
   # we can't use it.
   local $CWD = $self->local."/".$self->working;
   capture { system("git", "reset", "--hard", "HEAD") };
   capture { system("git", "clean", "-df") };
-
+  return;
 }
 
 method _build_branch {
@@ -122,11 +122,12 @@ method _build_branch {
   return $parse[0];
 }
 
-=method add_all
+=method add
 
-  $git->add;
+  $git->add($file);
 
-This method will perform a 'git add .' 
+This method takes an optional filename, if blank will perform a
+'git add .'.
 
 =cut
 
@@ -139,6 +140,18 @@ method add($file?) {
     $self->_git->add(".");
   }
   return;
+}
+
+=method clean_untracked
+
+  $git-clean_untracked;
+
+Recursively removes untracked files and directories from the repository.
+
+=cut
+
+method clean_untracked {
+  $self->_git->RUN("clean", "-df");
 }
 
 =method changed

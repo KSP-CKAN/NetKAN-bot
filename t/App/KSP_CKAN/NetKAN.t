@@ -4,6 +4,7 @@ use lib 't/lib/';
 
 use strict;
 use warnings;
+use v5.010;
 use Test::Most;
 use Test::Warnings;
 use File::chdir;
@@ -35,6 +36,7 @@ $netkan->full_index;
   foreach my $file (@files) {
     ok($file =~ /DogeCoinFlag-v\d.\d\d.ckan/, "NetKAN Inflated");
   }
+  ok($#files != -1, "We commited files to master");
 
   my $git = App::KSP_CKAN::Tools::Git->new(
     remote => $config->CKAN_meta,
@@ -42,10 +44,28 @@ $netkan->full_index;
     clean => 1,
   );
   
-  $git->_git;
+  my $identifier = "DogeCoinFlagStaged";
+  is($git->_build_branch, "master", "We started on the master branch");
+  ok(! -d "CKAN-meta/$identifier", "Staged netkan not commited to master");
+
+  $git->checkout_branch("staging");
+  is($git->_build_branch, "staging", "We are on the staging branch");
+  my @staged = glob( "./CKAN-meta/$identifier/*.ckan" );
+  ok($#staged != -1, "We commited files to staging");
+  foreach my $file (@staged) {
+    ok($file =~ /$identifier-v\d.\d\d.ckan/, "Commited to staged");
+  }
+
+  $git->checkout_branch($identifier);
+  is($git->_build_branch, $identifier, "We are on the $identifier branch");
+  my @id_branch = glob( "./CKAN-meta/$identifier/*.ckan" );
+  ok($#id_branch != -1, "We commited files to $identifier");
+  foreach my $file (@id_branch) {
+    ok($file =~ /$identifier-v\d.\d\d.ckan/, "Commited to $identifier");
+  }
+
   ok(! -d  "CKAN-meta/DogeCoinFlag-broken", "No broken metadata committed");
   ok(! -d  "CKAN-meta/DogeCoinFlag-invalid", "No invalid metadata committed");
-     
 }
 
 ok( -d $config->cache, "NetKAN cache path set correctly" );
