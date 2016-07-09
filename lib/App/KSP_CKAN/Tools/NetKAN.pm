@@ -69,6 +69,7 @@ has '_cache'              => ( is => 'ro', lazy => 1, builder => 1 );
 has '_basename'           => ( is => 'ro', lazy => 1, builder => 1 );
 has '_status'             => ( is => 'rw', lazy => 1, builder => 1 );
 has '_netkan_metadata'    => ( is => 'rw', lazy => 1, builder => 1 );
+has '_github'             => ( is => 'rw', lazy => 1, builder => 1 );
 
 method _build__cache {
   if ( ! -d $self->cache ) {
@@ -119,6 +120,10 @@ method _build__status {
 
 method _build__netkan_metadata {
   return App::KSP_CKAN::Metadata::NetKAN->new( file => $self->file );
+}
+
+method _build__netkan_metadata {
+  return App::KSP_CKAN::Tools::GitHub->new( config  => $self->config );
 }
 
 method _output_md5 {
@@ -188,6 +193,7 @@ method _commit($file) {
       identifier  => $self->_netkan_metadata->identifier,
       message     => "NetKAN generated mods - $changed",
     );
+    $self->_github->submit_pr($self->_netkan_metadata->identifier) if $self->config->GH_token;
     return 0;
   }
 
