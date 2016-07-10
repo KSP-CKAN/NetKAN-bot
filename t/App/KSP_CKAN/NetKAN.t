@@ -45,11 +45,11 @@ $netkan->full_index;
   );
   
   my $identifier = "DogeCoinFlagStaged";
-  is($git->_build_branch, "master", "We started on the master branch");
+  is($git->current_branch, "master", "We started on the master branch");
   ok(! -d "CKAN-meta/$identifier", "Staged netkan not commited to master");
 
   $git->checkout_branch("staging");
-  is($git->_build_branch, "staging", "We are on the staging branch");
+  is($git->current_branch, "staging", "We are on the staging branch");
   my @staged = glob( "./CKAN-meta/$identifier/*.ckan" );
   ok($#staged != -1, "We commited files to staging");
   foreach my $file (@staged) {
@@ -57,7 +57,7 @@ $netkan->full_index;
   }
 
   $git->checkout_branch($identifier);
-  is($git->_build_branch, $identifier, "We are on the $identifier branch");
+  is($git->current_branch, $identifier, "We are on the $identifier branch");
   my @id_branch = glob( "./CKAN-meta/$identifier/*.ckan" );
   ok($#id_branch != -1, "We commited files to $identifier");
   foreach my $file (@id_branch) {

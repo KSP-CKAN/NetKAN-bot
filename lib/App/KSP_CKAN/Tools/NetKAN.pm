@@ -14,6 +14,7 @@ use Digest::MD5::File qw(dir_md5_hex);
 use File::Find::Age;
 use Carp qw(croak);
 use App::KSP_CKAN::Metadata::NetKAN;
+use App::KSP_CKAN::Tools::GitHub;
 use Moo;
 use namespace::clean;
 

@@ -148,20 +148,24 @@ subtest 'Staged Commit' => sub {
   );
   $git->_hard_clean;
 
-  is($git->_build_branch, "master", "We started on the master branch");
+  is($git->current_branch, "master", "We returned to the master branch");
   isnt(-e $file, 1, "Our staged file wasn't commited to master");
   
   $git->checkout_branch("staging");
-  is($git->_build_branch, "staging", "We are on to the staging branch");
+  is($git->current_branch, "staging", "We are on to the staging branch");
   $git->_hard_clean;
   is(digest_file_hex( $file, "SHA-1" ), $hash, "Our staging branch was commited to");
   
   $git->checkout_branch($identifier);
-  is($git->_build_branch, $identifier, "We are on the $identifier branch");
+  is($git->current_branch, $identifier, "We are on the $identifier branch");
   $git->_hard_clean;
   is(digest_file_hex( $file, "SHA-1" ), $hash, "Our $identifier branch was commited to");
-
-  $git->checkout_branch($git->branch);
+  my $branch = App::KSP_CKAN::Tools::Git->new(
+    remote => $test->tmp."/data/CKAN-meta",
+    local => $test->tmp,
+    clean => 1,
+  );
+  is($branch->current_branch, "master", "We start on master upon instantiation");
 };
 
 # Cleanup after ourselves

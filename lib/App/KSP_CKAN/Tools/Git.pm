@@ -68,7 +68,7 @@ has 'local'     => ( is => 'ro', required => 1 );
 has 'working'   => ( is => 'ro', lazy => 1, builder => 1 );
 has 'clean'     => ( is => 'ro', default => sub { 0 } );
 has 'shallow'   => ( is => 'ro', default => sub { 1 } );
-has 'branch'    => ( is => 'rw', lazy => 1, builder => 1 );
+has 'branch'    => ( is => 'rw', default => sub { "master" } );
 has '_git'      => ( is => 'rw', isa => sub { "Git::Wrapper" }, lazy => 1, builder => 1 );
 
 method _build__git {
@@ -78,15 +78,17 @@ method _build__git {
 
   if ( ! -d $self->local."/".$self->working ) {
     $self->_clone;
-  }
-
-  if ($self->clean) {
+  } elsif ($self->clean) { # Lets not clean a cloned repo
     $self->_hard_clean;
   }
 
-  return Git::Wrapper->new({
+  my $git = Git::Wrapper->new({
     dir => $self->local."/".$self->working,
   });
+
+  # Lets make sure we start from a known place.
+  $git->checkout($self->branch);
+  return $git;
 }
 
 method _build_working {
@@ -117,7 +119,15 @@ method _hard_clean {
   return;
 }
 
-method _build_branch {
+=method current_branch
+
+  say $git->current_branch;
+
+Returns the current bracn you're on.
+
+=cut
+
+method current_branch {
   my @parse = $self->_git->rev_parse(qw|--abbrev-ref HEAD|);
   return $parse[0];
 }
@@ -175,7 +185,7 @@ a list of comparing local.
 
 method changed(:$origin = 1) {
   if ( $origin ) {
-    return $self->_git->diff({ 'name-only' => 1, }, "--stat", "origin/".$self->branch );
+    return $self->_git->diff({ 'name-only' => 1, }, "--stat", "origin/".$self->current_branch );
   } else {
     return $self->_git->diff({ 'name-only' => 1, });
   }
@@ -262,19 +272,21 @@ branch and cherry-picks the commit from the previous commit to staging.
 #       them drifting.
 
 method staged_commit(:$identifier, :$file, :$message = "Generic Commit") {
-  # NOTE: Not 100% happy with this line, but if our branch value isn't
-  #       populated we'll end up stuck on the last identifier that was 
-  #       checked out.
-  $self->branch;
+  # Need to push our changes before checking out staging otherwise our
+  # staged commits end up with the commits already in master.
+  $self->pull( ours => 1 );
+  $self->push;
 
   # Commit to staging branch
   $self->checkout_branch("staging");
-  $self->pull( ours => 1 );
+  try { # Our remote may not have the branch, we don't mind.
+    $self->pull( ours => 1 );
+  };
   $self->commit(
     file    => $file,
     message => $message,
   );
-  $self->_git->push("origin","staging");
+  $self->push;
  
   # Get the commit ID of the staged CKAN 
   my $commit = $self->last_commit;
@@ -285,13 +297,15 @@ method staged_commit(:$identifier, :$file, :$message = "Generic Commit") {
 
   # Commit to identifier branch
   $self->checkout_branch($identifier);
-  $self->pull( ours => 1 );
+  try { # Our remote may not have the branch, we don't mind.
+    $self->pull( ours => 1 );
+  };
   $self->cherry_pick($commit);
-  $self->_git->push("origin",$identifier);
+  $self->push;
 
   # Return to our original branch
   $self->checkout_branch($self->branch);
-  return;
+  return 1;
 }
 
 =method reset
@@ -311,12 +325,12 @@ method reset(:$file) {
   
   $git->push;
 
-Will push the local branch to origin/branh.
+Will push the current checked out local branch to origin/branch.
 
 =cut
 
 method push {
-  return $self->_git->push("origin",$self->branch);
+  return $self->_git->push("origin",$self->current_branch);
 }
 
 =method pull
@@ -331,11 +345,11 @@ merge conflicts arise.
 
 method pull(:$ours?,:$theirs?) {
   if ($theirs) {
-    $self->_git->pull(qw|-X theirs|);
+    $self->_git->pull("origin", $self->current_branch, "-X", "theirs");
   } elsif ($ours) {
-    $self->_git->pull(qw|-X ours|);
+    $self->_git->pull("origin", $self->current_branch, "-X", "ours");
   } else {
-    $self->_git->pull;
+    $self->_git->pull("origin", $self->current_branch);
   }
   return;
 }
