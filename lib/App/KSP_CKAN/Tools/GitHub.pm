@@ -32,13 +32,21 @@ my $Ref = sub {
 
 has 'config'    => ( is => 'ro', required => 1, isa => $Ref );
 has '_github'   => ( is => 'ro', lazy => 1, builder => 1 );
-has 'repo'      => ( is => 'ro', default => sub { 'CKAN-meta' } );
-has 'user'      => ( is => 'ro', default => sub { 'KSP-CKAN' } );
+has 'repo'      => ( is => 'ro', lazy => 1, builder => 1 );
+has 'user'      => ( is => 'ro', lazy => 1, builder => 1 );
 
 method _build__github {
   my $gh = Net::GitHub::V3->new( access_token => $self->config->GH_token );
   $gh->set_default_user_repo($self->user, $self->repo);
   return $gh;
+}
+
+method _build_repo {
+  return $self->config->GH_repo;
+}
+
+method _build_user {
+  return $self->config->GH_user;
 }
 
 =method submit_pr

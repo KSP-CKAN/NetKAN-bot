@@ -37,6 +37,8 @@ has 'netkan_exe'    => ( is => 'ro', lazy => 1, builder => 1 );
 has 'ckan_validate' => ( is => 'ro', lazy => 1, builder => 1 );
 has 'ckan_schema'   => ( is => 'ro', lazy => 1, builder => 1 );
 has 'GH_token'      => ( is => 'ro', lazy => 1, builder => 1 );
+has 'GH_user'       => ( is => 'ro', lazy => 1, builder => 1 );
+has 'GH_repo'       => ( is => 'ro', lazy => 1, builder => 1 );
 has 'IA_access'     => ( is => 'ro', lazy => 1, builder => 1 );
 has 'IA_secret'     => ( is => 'ro', lazy => 1, builder => 1 );
 has 'IA_collection' => ( is => 'ro', lazy => 1, builder => 1 );
@@ -88,6 +90,14 @@ method _build_IA_secret {
 
 method _build_IA_collection {
   return $self->_config->{_}{'IA_collection'} ? $self->_config->{_}{'IA_collection'} : "test_collection";
+}
+
+method _build_GH_repo {
+  return $self->_config->{_}{'GH_repo'} ? $self->_config->{_}{'GH_repo'} : "CKAN-meta";
+}
+
+method _build_GH_user {
+  return $self->_config->{_}{'GH_user'} ? $self->_config->{_}{'GH_user'} : "KSP-CKAN";
 }
 
 method _build_GH_token {
