@@ -188,13 +188,13 @@ method _commit($file) {
   }
 
   if ( $self->_netkan_metadata->staging ) {
-    $self->info("Commiting $changed to staging");
-    $self->ckan_meta->staged_commit(
+    my $result = $self->ckan_meta->staged_commit(
       file        => $file,
       identifier  => $self->_netkan_metadata->identifier,
       message     => "NetKAN generated mods - $changed",
     );
-    $self->_github->submit_pr($self->_netkan_metadata->identifier) if $self->config->GH_token;
+    $self->info("Committed $changed to staging") if $result;
+    $self->_github->submit_pr($self->_netkan_metadata->identifier) if $self->config->GH_token && $result;
     return 0;
   }
 

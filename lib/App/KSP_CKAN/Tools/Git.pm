@@ -11,6 +11,7 @@ use Git::Wrapper;
 use Capture::Tiny qw(capture capture_stdout);
 use File::chdir;
 use File::Path qw(remove_tree mkpath);
+use Digest::file qw(digest_file_hex);
 use Moo;
 use namespace::clean;
 
@@ -117,6 +118,14 @@ method _hard_clean {
   capture { system("git", "reset", "--hard", "HEAD") };
   capture { system("git", "clean", "-df") };
   return;
+}
+
+method _random_branch {
+  # http://www.perlmonks.org/?node_id=233023
+  my @chars = ("A".."Z", "a".."z");
+  my $rand;
+  $rand .= $chars[rand @chars] for 1..8;
+  return $rand;
 }
 
 =method current_branch
@@ -236,7 +245,15 @@ checks it out.
 
 method checkout_branch($branch) {
   local $CWD = $self->local."/".$self->working;
-  capture { system("git checkout $branch 2>/dev/null || git checkout -b $branch") };
+  # one of these will succeed
+  try {
+    capture {system("git checkout -b $branch")};
+  };
+  try {
+    capture {system("git checkout $branch")};
+  };
+  croak "Couldn't checkout our requested branch" unless $branch eq $self->current_branch;
+  return;
 }
 
 =method cherry_pick
@@ -277,35 +294,71 @@ method staged_commit(:$identifier, :$file, :$message = "Generic Commit") {
   $self->pull( ours => 1 );
   $self->push;
 
-  # Commit to staging branch
-  $self->checkout_branch("staging");
-  try { # Our remote may not have the branch, we don't mind.
-    $self->pull( ours => 1 );
-  };
+  # We could stash, but the results were inconsistent and it seemed hard,
+  # with lots of edge cases.
+  # This seems like a novel approach
+  # https://codingkilledthecat.wordpress.com/2012/04/27/git-stash-pop-considered-harmful/
+  my $random_branch = $self->_random_branch;
+  $self->checkout_branch($random_branch);
   $self->commit(
     file    => $file,
     message => $message,
   );
+
+  # We need to hash the new file for comparrison against the existing
+  # file before cherry-picking
+  my $hash = digest_file_hex( $file, "SHA-1" );
+  my $commit = $self->last_commit;
+
+  # We need to go back to master to avoid issues diverging from the 
+  # random branch if our staging branch doesn't exist. 
+  $self->checkout_branch($self->branch);
+
+  # Lets start with staging
+  $self->checkout_branch("staging");
+  
+  # We don't want to repeatedly PR changes  
+  if ( -e $file && digest_file_hex( $file, "SHA-1" ) eq $hash ) {
+    $self->delete_branch($random_branch);
+    return 0;
+  }
+  
+  $self->cherry_pick($commit);
+  # Upstream pulling needs to be done after commiting.
+  try { # Our remote may not have the branch, we don't mind.
+    $self->pull( ours => 1 );
+  };
   $self->push;
  
-  # Get the commit ID of the staged CKAN 
-  my $commit = $self->last_commit;
-  
-  # NOTE: We need to go back to our original branch to avoid
-  #       diverging from our staging branch
+  # We need to go back to our original branch to avoid
+  # diverging from our staging branch
   $self->checkout_branch($self->branch);
 
   # Commit to identifier branch
   $self->checkout_branch($identifier);
+  $self->cherry_pick($commit);
+  # Upstream pulling needs to be done after commiting.
   try { # Our remote may not have the branch, we don't mind.
     $self->pull( ours => 1 );
   };
-  $self->cherry_pick($commit);
   $self->push;
 
   # Return to our original branch
   $self->checkout_branch($self->branch);
+  $self->delete_branch($random_branch);
   return 1;
+}
+
+=method delete_branch
+  
+  $git->delete_branch($branch);
+
+Deletes the requested branch.
+
+=cut
+
+method delete_branch($branch) {
+  return $self->_git->RUN("branch", "-D", $branch);
 }
 
 =method reset
