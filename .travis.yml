@@ -4,6 +4,12 @@ perl:
 #  - "5.22" 
   - "5.20"
   - "5.18"
+addons:
+  apt:
+    sources:
+    - git-core
+    packages:
+    - git
 before_install:
   # Prevent "Please tell me who you are" errors for certain DZIL configs
   - git config --global user.name "TravisCI"
