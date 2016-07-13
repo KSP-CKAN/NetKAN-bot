@@ -10,6 +10,7 @@ addons:
     - git-core
     packages:
     - git
+    - aspell
 before_install:
   # Prevent "Please tell me who you are" errors for certain DZIL configs
   - git config --global user.name "TravisCI"

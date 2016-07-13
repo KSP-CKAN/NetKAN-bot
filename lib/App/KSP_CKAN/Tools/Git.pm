@@ -132,7 +132,7 @@ method _random_branch {
 
   say $git->current_branch;
 
-Returns the current bracn you're on.
+Returns the current branch you're on.
 
 =cut
 
