@@ -212,7 +212,7 @@ method create_netkan(
   :$random      = 1, 
 ) {
   my $vref_field = $vref ? qq|"\$vref" : "$vref",| : "";
-  my $staging_field = $vref ? "" : qq|,"staging" : 1|;
+  my $staging_field = $vref ? "" : qq|,"x-netkan-staging" : 1|;
   my $rand = $random ? $self->_random_string : "random";
 
   # Create the NetKAN

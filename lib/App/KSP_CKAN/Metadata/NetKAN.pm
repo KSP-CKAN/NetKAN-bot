@@ -100,7 +100,7 @@ method _build_license {
 }
 
 method _build_staging {
-  return $self->_raw->{config}{staging} ? $self->_raw->{config}{staging} : 0 ;
+  return $self->_raw->{config}{'x-netkan-staging'} ? $self->_raw->{config}{'x-netkan-staging'} : 0 ;
 }
 
 =method licenses
