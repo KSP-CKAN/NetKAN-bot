@@ -288,6 +288,11 @@ branch and cherry-picks the commit from the previous commit to staging.
 #       seeing how this works in practice and think on how to solve
 #       them drifting.
 
+# NOTE: We're using a cherry-pick workflow because we always generate files
+#       in master. This is so we can have as little impact on the primary
+#       workflow as possible. Staged commits are a seperate workflow that
+#       only get triggered for netkans that require it.
+
 method staged_commit(:$identifier, :$file, :$message = "Generic Commit") {
   # Need to push our changes before checking out staging otherwise our
   # staged commits end up with the commits already in master.
