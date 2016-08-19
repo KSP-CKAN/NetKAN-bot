@@ -47,6 +47,15 @@ method _build__tmp {
   return $self->tmp;
 }
 
+method _random_string {
+  # Lets us generate CKANs that are different.
+  # http://www.perlmonks.org/?node_id=233023
+  my @chars = ("A".."Z", "a".."z");
+  my $rand;
+  $rand .= $chars[rand @chars] for 1..8;
+  return $rand;
+}
+
 =method create_tmp
 
   $test->create_tmp;
@@ -128,6 +137,7 @@ method create_ckan(
   :$version     = "1.0.0.1",
 ) {
   my $attribute = $valid ? "identifier" : "invalid_schema";
+  my $rand = $random ? $self->_random_string : "random";
 
   # Allows us against a metapackage. TODO: make into valid metapackage
   my $package;
@@ -137,16 +147,6 @@ method create_ckan(
     $package = qq|"download": "$download","download_content_type": "text/plain"|;
   } else {
     $package = qq|"download": "$download","download_hash": { "sha1": "1A2B3C4D5E","sha256": "$sha256" }, "download_content_type": "application/zip"|;
-  }
-
-  # Lets us generate CKANs that are different.
-  # http://www.perlmonks.org/?node_id=233023
-  my @chars = ("A".."Z", "a".."z");
-  my $rand;
-  if ( $random ) {
-    $rand .= $chars[rand @chars] for 1..8;
-  } else {
-    $rand = "random";
   }
 
   # Create the CKAN
@@ -173,6 +173,54 @@ defaults to true if unspecified, generating a test config
 with optional values.
 
 =cut
+
+=method create_netkan
+  
+  $test->create_netkan(file => "/path/to/file");
+
+Creates an example netkan that would pass validation at the specified
+path.
+
+=over
+
+=item file
+
+Path and file we are creating.
+
+=item identifier
+
+Allows us to specify a different identifier
+
+=item kref
+
+Allows us to specify a different kref.
+
+=item vref
+
+Allows us to specify a different or undef vref.
+
+=back
+
+=cut
+
+method create_netkan(
+  :$file, 
+  :$identifier  = "DogeCoinFlag", 
+  :$kref        = "#/ckan/github/pjf/DogeCoinFlag",
+  :$vref        = "#/ckan/ksp-avc",
+  :$staging     = 0,
+  :$random      = 1, 
+) {
+  my $vref_field = $vref ? qq|"\$vref" : "$vref",| : "";
+  my $staging_field = $vref ? "" : qq|,"x-netkan-staging" : 1|;
+  my $rand = $random ? $self->_random_string : "random";
+
+  # Create the NetKAN
+  open my $in, '>', $file;
+  print $in qq|{"spec_version": 1, "identifier": "$identifier", "\$kref" : "$kref", $vref_field "license": "CC-BY", "ksp_version": "any", "name": "Example NetKAN", "abstract": "It's a $rand example!", "author": "daviddwk", "resources": { "homepage": "https://www.reddit.com/r/dogecoin/comments/1tdlgg/i_made_a_more_accurate_dogecoin_and_a_ksp_flag/" }$staging_field }|;
+  close $in;
+  return;
+}
 
 method create_config(:$optional = 1, :$nogh = 0) {
   open my $in, '>', $self->_tmp."/.ksp-ckan";

@@ -13,6 +13,8 @@ use Capture::Tiny qw(capture);
 use Digest::MD5::File qw(dir_md5_hex);
 use File::Find::Age;
 use Carp qw(croak);
+use App::KSP_CKAN::Metadata::NetKAN;
+use App::KSP_CKAN::Tools::GitHub;
 use Moo;
 use namespace::clean;
 
@@ -67,6 +69,8 @@ has '_cli'                => ( is => 'ro', lazy => 1, builder => 1 );
 has '_cache'              => ( is => 'ro', lazy => 1, builder => 1 );
 has '_basename'           => ( is => 'ro', lazy => 1, builder => 1 );
 has '_status'             => ( is => 'rw', lazy => 1, builder => 1 );
+has '_netkan_metadata'    => ( is => 'rw', lazy => 1, builder => 1 );
+has '_github'             => ( is => 'rw', lazy => 1, builder => 1 );
 
 method _build__cache {
   if ( ! -d $self->cache ) {
@@ -115,6 +119,14 @@ method _build__status {
   return $self->status->get_status($self->_basename);
 }
 
+method _build__netkan_metadata {
+  return App::KSP_CKAN::Metadata::NetKAN->new( file => $self->file );
+}
+
+method _build__github {
+  return App::KSP_CKAN::Tools::GitHub->new( config  => $self->config );
+}
+
 method _output_md5 {
   my $md5 = Digest::MD5->new();
   $md5->adddir($self->_output);
@@ -150,24 +162,43 @@ method _parse_error($error) {
 method _commit($file) {
   $self->ckan_meta->add($file);
   my $changed = basename($file,  ".ckan");
+
   if ( $self->validate($file) ) {
     $self->warn("Failed to Parse $changed");
     $self->ckan_meta->reset(file => $file);
+    $self->ckan_meta->clean_untracked;
     $self->_status->failure("Schema validation failed");
     return 1;
-  } elsif ($self->is_debug()) {
+  } 
+  
+  if ($self->is_debug()) {
     $self->debug("$changed would have been commited");
     $self->ckan_meta->reset(file => $file);
     return 0;
-  } else {
+  } 
+  
+  if ( ! $self->_netkan_metadata->staging ) {
     $self->info("Commiting $changed");
     $self->ckan_meta->commit(
-      file => $file,
+      file    => $file,
       message => "NetKAN generated mods - $changed",
     );
     $self->_status->indexed;
     return 0;
   }
+
+  if ( $self->_netkan_metadata->staging ) {
+    my $result = $self->ckan_meta->staged_commit(
+      file        => $file,
+      identifier  => $self->_netkan_metadata->identifier,
+      message     => "NetKAN generated mods - $changed",
+    );
+    $self->info("Committed $changed to staging") if $result;
+    $self->_github->submit_pr($self->_netkan_metadata->identifier) if $self->config->GH_token && $result;
+    return 0;
+  }
+
+  return 1;
 }
 
 =method inflate

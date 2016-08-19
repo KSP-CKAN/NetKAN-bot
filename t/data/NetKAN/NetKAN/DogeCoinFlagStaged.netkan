@@ -1,0 +1,22 @@
+{
+    "spec_version"      : 1,
+    "identifier"        : "DogeCoinFlagStaged",
+    "name"              : "Dogecoin Flag Staged",
+    "abstract"          : "Such flag. Very Staged. Wow.",
+    "description"       : "Adorn your craft with your favourite cryptocurrency. To the mün!",
+    "$kref"             : "#/ckan/github/pjf/DogeCoinFlag",
+    "$vref"             : "#/ckan/ksp-avc",
+    "ksp_version"       : "any",
+    "license"           : "CC-BY",
+    "author"            : "daviddwk",
+    "install"           : [
+                            {
+                             "find_regexp": "^DogeCoinFlag",
+                             "install_to": "GameData"
+                            },
+    ],
+    "resources"         : {
+        "homepage"      : "https://www.reddit.com/r/dogecoin/comments/1tdlgg/i_made_a_more_accurate_dogecoin_and_a_ksp_flag/"
+    },
+    "x-netkan-staging"  : 1
+}

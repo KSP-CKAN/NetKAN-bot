@@ -4,8 +4,10 @@ use lib 't/lib/';
 
 use strict;
 use warnings;
+use v5.010;
 use Test::Most;
 use Test::Warnings ':no_end_test';
+use Digest::file qw(digest_file_hex);
 use App::KSP_CKAN::Test;
 use App::KSP_CKAN::Tools::Http;
 use App::KSP_CKAN::Tools::Git;
@@ -104,7 +106,44 @@ subtest 'File Validation' => sub {
   $netkan->_commit( $config->working."/CKAN-meta/test_file2.ckan" );
   is( $netkan->ckan_meta->changed, 0, "broken metadata was not committed" );
   $netkan->ckan_meta->add;
-  is( $netkan->ckan_meta->changed, 1, "broken metadata does actually exist" );
+  is( $netkan->ckan_meta->changed, 0, "broken metadata gets removed" );
+};
+
+# Test staged commits
+subtest 'Staged Commits' => sub {
+  # Setup
+  my $staged = App::KSP_CKAN::Tools::NetKAN->new(
+    config    => $config, 
+    netkan    => $test->tmp."/netkan.exe",
+    cache     => $test->tmp."/cache", # TODO: Test default cache location
+    ckan_meta => $ckan,
+    status    => $status,
+    file      => $config->working."/NetKAN/NetKAN/DogeCoinFlagStaged.netkan"
+  );
+  my $file = $config->working."/CKAN-meta/staged.ckan";
+  $test->create_ckan( file => $file );
+  my $hash = digest_file_hex( $file, "SHA-1" );
+  my $identifier = "DogeCoinFlagStaged";
+
+  # Commit
+  is($ckan->current_branch, "master", "We started on the master branch");
+  $staged->_commit( $file );
+  is($ckan->current_branch, "master", "We were returned to the master branch");
+  isnt(-e $file, 1, "Our staged file wasn't commited to master");
+
+  # Staged branch
+  $ckan->checkout_branch("staging");
+  is($ckan->current_branch, "staging", "We are on the staging branch");
+  $ckan->_hard_clean;
+  is(digest_file_hex( $file, "SHA-1" ), $hash, "Our staging branch was commited to");
+
+  # Identifier branch
+  $ckan->checkout_branch($identifier);
+  is($ckan->current_branch, $identifier, "We are on the $identifier branch");
+  $ckan->_hard_clean;
+  is(digest_file_hex( $file, "SHA-1" ), $hash, "Our $identifier branch was commited to");
+
+  $ckan->checkout_branch($ckan->branch);
 };
 
 # Test Error Parsing

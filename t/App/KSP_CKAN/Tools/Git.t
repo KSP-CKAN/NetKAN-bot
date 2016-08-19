@@ -4,10 +4,12 @@ use lib 't/lib/';
 
 use strict;
 use warnings;
+use v5.010;
 use Test::Most;
 use Test::Warnings;
 use File::chdir;
 use File::Path qw(mkpath remove_tree);
+use Digest::file qw(digest_file_hex);
 use App::KSP_CKAN::Test;
 
 # Setup our environment
@@ -106,7 +108,7 @@ is($git->changed, 2, "File delete not commited");
 
 # Test cleanup
 $test->create_ckan( file => $test->tmp."/CKAN-meta/cleaned_file.ckan" );
-$git->_clean;
+$git->_hard_clean;
 isnt(-e $test->tmp."/CKAN-meta/cleaned_file.ckan", 1, "Cleanup Successful");
 
 subtest 'Git Errors' => sub {
@@ -133,6 +135,76 @@ subtest 'Git Errors' => sub {
   );
   dies_ok { $path_error->pull } 'Non existent repo fails loudly';
 };
+
+subtest 'Staged Commit' => sub {
+  my $file = $test->tmp."/CKAN-meta/staged.ckan";
+  my $identifier = "Testing";
+  
+  # Initial File Creation
+  $test->create_ckan( file => $file );
+  $git->add($file);
+  my $hash = digest_file_hex( $file, "SHA-1" );
+  my $success = $git->staged_commit(
+    file        => $file,
+    identifier  => $identifier,
+    message     => "New File",
+  );
+  is($success, 1, "We commited a new file to staging");
+  $git->_hard_clean;
+
+  is($git->current_branch, "master", "We returned to the master branch");
+  isnt(-e $file, 1, "Our staged file wasn't commited to master");
+  
+  $git->checkout_branch("staging");
+  is($git->current_branch, "staging", "We are on to the staging branch");
+  $git->_hard_clean;
+  is(digest_file_hex( $file, "SHA-1" ), $hash, "Our staging branch was commited to");
+  $git->checkout_branch($identifier);
+  is($git->current_branch, $identifier, "We are on the $identifier branch");
+  $git->_hard_clean;
+  is(digest_file_hex( $file, "SHA-1" ), $hash, "Our $identifier branch was commited to");
+  
+  # File update
+  $test->create_ckan( file => $file, random => 0 );
+  $hash = digest_file_hex( $file, "SHA-1" );
+  $git->add($file);
+  my $update = $git->staged_commit(
+    file        => $file,
+    identifier  => $identifier,
+    message     => "Modified File",
+  );
+  $git->_hard_clean;
+  is($update, 1, "We commited a change to staging");
+ 
+  # Get the last commit ID from staging 
+  $git->checkout_branch("staging");
+  my $commit = $git->last_commit;
+  $git->checkout_branch("master");
+  
+  # Update with no changes
+  $test->create_ckan( file => $file, random => 0 );
+  $git->add($file);
+  $hash = digest_file_hex( $file, "SHA-1" );
+  my $nochange = $git->staged_commit(
+    file        => $file,
+    identifier  => $identifier,
+    message     => "No change file",
+  );
+  is($nochange, 0, "File with no changes reports not committed");
+  $git->checkout_branch("staging");
+  is($git->last_commit, $commit, "Commit ID matches prior commit");
+
+  # Ensure we're always starting on Master
+  $git->checkout_branch("staging");
+  is($git->current_branch, "staging", "We are on to the staging branch");
+  my $branch = App::KSP_CKAN::Tools::Git->new(
+    remote => $test->tmp."/data/CKAN-meta",
+    local => $test->tmp,
+    clean => 1,
+  );
+  is($branch->current_branch, "master", "We start on master upon instantiation");
+};
+
 
 # Cleanup after ourselves
 $test->cleanup;
