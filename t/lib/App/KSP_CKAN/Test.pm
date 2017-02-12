@@ -244,6 +244,29 @@ method create_config(:$optional = 1, :$nogh = 0) {
   return;
 }
 
+=method create_releases
+
+  $test->create_releases(file => "/path/to/file");
+
+=over
+
+=item file
+
+Path and file we are creating.
+
+=back
+
+=cut
+
+method create_releases(
+  :$file,
+) {
+  open my $in, '>', $file;
+  print $in qq|{"releases" : [{ "name": "current", "lower": "1.1.0" },{"name": "middle", "upper": "1.0.0", "lower": "0.90.0" },{"name": "legacy", "upper" : "0.25.0" }]}|;
+  close $in;
+  return;
+}
+
 =method cleanup
 
   $test->cleanup;
