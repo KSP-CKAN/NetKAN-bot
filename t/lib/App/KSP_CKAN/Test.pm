@@ -60,7 +60,7 @@ method _random_string {
 
   $test->create_tmp;
 
-This will deploy our temp environment. Only required if we 
+This will deploy our temp environment. Only required if we
 aren't creating a repo (one will be built on demand).
 
 =cut
@@ -80,7 +80,7 @@ Turns the named repo into a working local remote.
 
 method create_repo($repo) {
   local $CWD = $self->_tmp."/data/$repo";
-  capture { system("git", "init") }; 
+  capture { system("git", "init") };
   capture { system("git", "add", "-A") };
   capture { system("git", "commit", "-a", "-m", "Commit ALL THE THINGS!") };
   chdir("../");
@@ -90,7 +90,7 @@ method create_repo($repo) {
 }
 
 =method create_ckan
-  
+
   $test->create_ckan(file => "/path/to/file");
 
 Creates an example ckan that would pass validation at the specified
@@ -98,7 +98,7 @@ path.
 
 Takes an optional extra argument, that if set to false will create
 a ckan that won't pass schema validation.
-  
+
   $test->create_ckan( file => "/path/to/file", valid => 0);
 
 =over
@@ -114,7 +114,7 @@ validation against the schema.
 
 =item kind
 
-Allows us to specify a different kind of package. 'metadata' is the 
+Allows us to specify a different kind of package. 'metadata' is the
 only accepted one at the moment.
 
 =item license
@@ -126,10 +126,10 @@ Allows us to specify a different license.
 =cut
 
 method create_ckan(
-  :$file, 
-  :$valid       = 1, 
-  :$random      = 1, 
-  :$identifier  = "ExampleKAN", 
+  :$file,
+  :$valid       = 1,
+  :$random      = 1,
+  :$identifier  = "ExampleKAN",
   :$kind        = "package",
   :$license     = '"CC-BY-NC-SA"',
   :$download    = "https://example.com/example.zip",
@@ -157,7 +157,7 @@ method create_ckan(
 }
 
 =method cleanup
-  
+
   $test->cleanup;
 
 Does what it says on the tin, cleans up our mess.
@@ -165,17 +165,17 @@ Does what it says on the tin, cleans up our mess.
 =cut
 
 =method create_config
-  
+
   $test->create_config( optional => 0 );
 
 Creates a dummy config file for testing. The 'optional'
-defaults to true if unspecified, generating a test config 
+defaults to true if unspecified, generating a test config
 with optional values.
 
 =cut
 
 =method create_netkan
-  
+
   $test->create_netkan(file => "/path/to/file");
 
 Creates an example netkan that would pass validation at the specified
@@ -204,12 +204,12 @@ Allows us to specify a different or undef vref.
 =cut
 
 method create_netkan(
-  :$file, 
-  :$identifier  = "DogeCoinFlag", 
+  :$file,
+  :$identifier  = "DogeCoinFlag",
   :$kref        = "#/ckan/github/pjf/DogeCoinFlag",
   :$vref        = "#/ckan/ksp-avc",
   :$staging     = 0,
-  :$random      = 1, 
+  :$random      = 1,
 ) {
   my $vref_field = $vref ? qq|"\$vref" : "$vref",| : "";
   my $staging_field = $vref ? "" : qq|,"x-netkan-staging" : 1|;
@@ -231,7 +231,7 @@ method create_config(:$optional = 1, :$nogh = 0) {
   print $in "ckan_schema=https://raw.githubusercontent.com/KSP-CKAN/CKAN/master/CKAN.schema\n";
   print $in "IA_access=12345678\n";
   print $in "IA_secret=87654321\n";
-  
+
   # TODO: This is a little ugly.
   if ($optional) {
     print $in "GH_token=123456789\n" if ! $nogh;
@@ -245,7 +245,7 @@ method create_config(:$optional = 1, :$nogh = 0) {
 }
 
 =method cleanup
-  
+
   $test->cleanup;
 
 Does what it says on the tin, cleans up our mess.
