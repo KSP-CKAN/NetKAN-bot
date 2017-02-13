@@ -127,14 +127,17 @@ Allows us to specify a different license.
 
 method create_ckan(
   :$file,
-  :$valid       = 1,
-  :$random      = 1,
-  :$identifier  = "ExampleKAN",
-  :$kind        = "package",
-  :$license     = '"CC-BY-NC-SA"',
-  :$download    = "https://example.com/example.zip",
-  :$sha256      = "1A2B3C4D5E1A2B3C4D5E",
-  :$version     = "1.0.0.1",
+  :$valid           = 1,
+  :$random          = 1,
+  :$identifier      = "ExampleKAN",
+  :$kind            = "package",
+  :$license         = '"CC-BY-NC-SA"',
+  :$download        = "https://example.com/example.zip",
+  :$sha256          = "1A2B3C4D5E1A2B3C4D5E",
+  :$version         = "1.0.0.1",
+  :$ksp_version     = "1.1.2",
+  :$ksp_version_min?,
+  :$ksp_version_max?,
 ) {
   my $attribute = $valid ? "identifier" : "invalid_schema";
   my $rand = $random ? $self->_random_string : "random";
@@ -149,9 +152,17 @@ method create_ckan(
     $package = qq|"download": "$download","download_hash": { "sha1": "1A2B3C4D5E","sha256": "$sha256" }, "download_content_type": "application/zip"|;
   }
 
+  # Could use more checking..
+  my $ksp;
+  if ($ksp_version_max) {
+    $ksp = "\"ksp_version_max\": \"$ksp_version_max\", \"ksp_version_min\": \"$ksp_version_min\"";
+  } else {
+    $ksp = "\"ksp_version\": \"$ksp_version\"";
+  }
+
   # Create the CKAN
   open my $in, '>', $file;
-  print $in qq|{"spec_version": 1, "$attribute": "$identifier", "license": $license, "ksp_version": "1.1.2", "name": "Example KAN", "abstract": "It's a $rand example!", "author": "Techman83", "version": "$version", $package, "resources": { "homepage": "https://example.com/homepage", "repository": "https://example.com/repository" }}|;
+  print $in qq|{"spec_version": 1, "$attribute": "$identifier", "license": $license, $ksp, "name": "Example KAN", "abstract": "It's a $rand example!", "author": "Techman83", "version": "$version", $package, "resources": { "homepage": "https://example.com/homepage", "repository": "https://example.com/repository" }}|;
   close $in;
   return;
 }

@@ -12,7 +12,7 @@ use App::KSP_CKAN::Test;
 my $test = App::KSP_CKAN::Test->new();
 
 use_ok("App::KSP_CKAN::Metadata::Ckan");
-$test->create_ckan( file => $test->tmp."/package.ckan", random => 0 );
+$test->create_ckan( file => $test->tmp."/package.ckan", random => 0, ksp_version_min => "1.1.2", ksp_version_max => "1.2" );
 $test->create_ckan( file => $test->tmp."/metapackage.ckan", kind => "metapackage" );
 $test->create_ckan( file => $test->tmp."/nohash.ckan", kind => "nohash" );
 $test->create_ckan( file => $test->tmp."/escaped.ckan", download => 'https://example.com/url%20with%40escape%24characters%23' );
@@ -41,6 +41,12 @@ subtest 'fields' => sub {
   is($package->download_sha1, '1A2B3C4D5E', "Download sha1 successfully retrieved");
   is($package->download_sha256, '1A2B3C4D5E1A2B3C4D5E', "Download sha256 successfully retrieved");
   is($package->download_content_type, 'application/zip', "Download content type successfully retrieved");
+  is($package->ksp_version, undef, "ksp_version undef when doesn't exist");
+  is($package->ksp_version_min, "1.1.2", "ksp_version_min retrieved successfully");
+  is($package->ksp_version_max, "1.2", "ksp_version_max retrieved successfully");
+  is($epoch->ksp_version, "1.1.2", "ksp_version retrieved successfully");
+  is($epoch->ksp_version_min, undef, "ksp_version_min undef when doesn't exist");
+  is($epoch->ksp_version_max, undef, "ksp_version_max undef when doesn't exist");
 };
 
 my $metapackage = App::KSP_CKAN::Metadata::Ckan->new( file => $test->tmp."/metapackage.ckan");

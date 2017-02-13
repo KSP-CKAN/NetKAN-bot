@@ -53,8 +53,20 @@ of whether there is a single author or multiple.
 
 =item kind
 
-Returns the kind of CKAN. Default is 'package', but will return 
+Returns the kind of CKAN. Default is 'package', but will return
 'metapackage' for CKANs marked as such.
+
+=item ksp_version
+
+Returns the supported version if present.
+
+=item ksp_version_min
+
+Returns the minimum supported version if present.
+
+=item ksp_version_max
+
+Returns the maximum supported version if present.
 
 =item download
 
@@ -101,6 +113,9 @@ has 'author'                => ( is => 'ro', lazy => 1, builder => 1 );
 has 'name'                  => ( is => 'ro', lazy => 1, builder => 1 );
 has 'abstract'              => ( is => 'ro', lazy => 1, builder => 1 );
 has 'kind'                  => ( is => 'ro', lazy => 1, builder => 1 );
+has 'ksp_version'           => ( is => 'ro', lazy => 1, builder => 1 );
+has 'ksp_version_min'       => ( is => 'ro', lazy => 1, builder => 1 );
+has 'ksp_version_max'       => ( is => 'ro', lazy => 1, builder => 1 );
 has 'download'              => ( is => 'ro', lazy => 1, builder => 1 );
 has 'download_sha1'         => ( is => 'ro', lazy => 1, builder => 1 );
 has 'download_sha256'       => ( is => 'ro', lazy => 1, builder => 1 );
@@ -125,6 +140,18 @@ method _build_identifier {
 
 method _build_kind {
   return $self->_raw->{config}{kind} ? $self->_raw->{config}{kind} : 'package' ;
+}
+
+method _build_ksp_version {
+  return $self->_raw->{config}{ksp_version} ? $self->_raw->{config}{ksp_version} : undef ;
+}
+
+method _build_ksp_version_min {
+  return $self->_raw->{config}{ksp_version_min} ? $self->_raw->{config}{ksp_version_min} : undef ;
+}
+
+method _build_ksp_version_max {
+  return $self->_raw->{config}{ksp_version_max} ? $self->_raw->{config}{ksp_version_max} : undef ;
 }
 
 method _build_version{
