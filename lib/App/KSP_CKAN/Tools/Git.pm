@@ -12,6 +12,7 @@ use Capture::Tiny qw(capture capture_stdout);
 use File::chdir;
 use File::Path qw(remove_tree mkpath);
 use Digest::file qw(digest_file_hex);
+use List::MoreUtils qw(any);
 use Moo;
 use namespace::clean;
 
@@ -137,8 +138,21 @@ Returns the current branch you're on.
 =cut
 
 method current_branch {
-  my @parse = $self->_git->rev_parse(qw|--abbrev-ref HEAD|);
-  return $parse[0];
+  my @parse;
+  try {
+    @parse = $self->_git->rev_parse(qw|--abbrev-ref HEAD|);
+  };
+
+  # It would appear Orphan branches don't appear in the rev parse.
+  # This'll maintain existing behaviour except for the Orphaned branches.
+  my $branch = $parse[0];
+  if ( ! $branch ) {
+    local $CWD = $self->local."/".$self->working;
+    $branch = capture { system("git symbolic-ref -q HEAD") };
+    chomp($branch);
+    $branch =~ s/refs\/heads\///;
+  }
+  return $branch;
 }
 
 =method add
@@ -253,6 +267,46 @@ method checkout_branch($branch) {
     capture {system("git checkout $branch")};
   };
   croak "Couldn't checkout our requested branch" unless $branch eq $self->current_branch;
+  return;
+}
+
+=method branches
+
+  my @branches = $git->branches;
+
+Returns an array of branches.
+
+=cut
+
+method branches {
+  my @branches = $self->_git->RUN("branch", "-r");
+  foreach my $branch (@branches) {
+    $branch =~ s/^\s+//;
+  }
+  return @branches;
+}
+
+=method orphan_branch
+
+  $git->orphan_branch("legacy");
+
+Creates an orphaned branch if it doesn't already exist. Bails if attempting to
+switch to 'master' or 'staging'.
+
+=cut
+
+method orphan_branch($branch) {
+  croak "Danger Will Robinson! You're trying to blat the $branch branch!!!"
+    if ($branch eq "master" || $branch eq "staging");
+  local $CWD = $self->local."/".$self->working;
+
+  if ( any { $_ eq "origin/$branch" } $self->branches ) {
+    $self->checkout_branch($branch);
+    return;
+  }
+  $self->_git->RUN("checkout", "--orphan" , $branch);
+  capture {system("git rm --cached -r .")};
+  capture {system("git clean -f -d")};
   return;
 }
 
