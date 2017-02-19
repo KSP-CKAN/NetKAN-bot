@@ -22,7 +22,7 @@ extends 'App::KSP_CKAN::Mirror';
 =head1 SYNOPSIS
 
   use App::KSP_CKAN::WebHooks::MirrorCKAN;
-  
+
   my $mirror = App::KSP_CKAN::WebHooks::MirrorCKAN->new();
   $mirror->mirror("/path/to/ckan");
 
@@ -36,7 +36,7 @@ has 'config' => ( is => 'ro', lazy => 1, builder => 1 );
 has '_CKAN_meta'  => ( is => 'ro', lazy => 1, builder => 1 );
 
 # TODO: This is a hack, the application should be multi
-#       function aware. 
+#       function aware.
 method _build_config {
   my $working = $ENV{HOME}."/CKAN-Webhooks/mirror";
   if ( ! -d $working ) {
@@ -56,7 +56,7 @@ method _build__CKAN_meta {
 }
 
 method mirror($files) {
-  # Lets take an array as well! 
+  # Lets take an array as well!
   my @files = reftype \$files ne "SCALAR" ? @{$files} : $files;
 
   # Prepare Enironment
@@ -69,7 +69,7 @@ method mirror($files) {
       $self->warn("The ckan '".$file."' doesn't appear to exist");
       next;
     }
-    
+
     # Attempt Mirror
     try {
       $self->upload_ckan($file);
