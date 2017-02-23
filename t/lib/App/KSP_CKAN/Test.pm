@@ -7,6 +7,7 @@ use autodie;
 use Method::Signatures 20140224;
 use Try::Tiny;
 use File::Temp qw(tempdir);
+use File::Basename qw(fileparse);
 use File::Path qw(remove_tree mkpath);
 use File::chdir;
 use File::Copy::Recursive qw(dircopy dirmove);
@@ -158,6 +159,11 @@ method create_ckan(
     $ksp = "\"ksp_version_max\": \"$ksp_version_max\", \"ksp_version_min\": \"$ksp_version_min\"";
   } else {
     $ksp = "\"ksp_version\": \"$ksp_version\"";
+  }
+
+  my ($fname, $fpath) = fileparse($file);
+  if (! -d $fpath) {
+    mkpath($fpath);
   }
 
   # Create the CKAN
