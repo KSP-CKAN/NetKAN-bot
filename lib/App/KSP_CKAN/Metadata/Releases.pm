@@ -27,18 +27,6 @@ use namespace::clean;
 Provides a releases metadata object for KSP-CKAN. Has the following
 attributes available.
 
-=over
-
-=item releases
-
-Returns an array of release branch constraints.
-
-=item release
-
-Returns the matching release branch for the corresponding version.
-
-=back
-
 =cut
 
 has 'file'                  => ( is => 'ro', required => 1 ); # TODO: we should do some validation here.
@@ -52,6 +40,14 @@ has 'releases'              => ( is => 'ro', lazy => 1, builder => 1 );
 method _build__raw {
   return Config::JSON->new($self->file);
 }
+
+=method releases
+
+  $releases->releases;
+
+Returns an array_ref of the releases.
+
+=cut
 
 method _build_releases {
   my $releases = $self->_raw->{config}{releases};
@@ -67,10 +63,19 @@ method _compare_version($a, $b) {
   # Shortcut if we're equal
   return 1 if ($a eq $b);
 
+  # Split version into major/minor/patch components
   my @a_split = split(/\./, $a);
-  $a_split[2] = 0 if (! $a_split[2]);
   my @b_split = split(/\./, $b);
+
+  # Ensure 0.90 and 1.2 end up as 0.90.0 and 1.2.0
+  $a_split[2] = 0 if (! $a_split[2]);
   $b_split[2] = 0 if (! $b_split[2]);
+
+  # This loop will iterate over Major.Minor.Patch
+  # As soon as it encounters a situation where $a is
+  # less than b it'll return false, alternatively
+  # as soon as it encounters a situation where $a is
+  # greater than $b it'll return true.
   my $count = 0;
   foreach my $iter (@a_split) {
     if ($iter < $b_split[$count]) {
@@ -81,11 +86,25 @@ method _compare_version($a, $b) {
     }
     $count++;
   }
+
+  # In the case of 1.2 vs 1.2.0, we'll fall through the
+  # above iteration, however we're equal. So lets return
+  # as such.
   return 1;
 }
 
+=method release
+
+  $release->release("1.0.2");
+
+Returns the corresponding release for the version.
+
+=cut
+
 method release($version) {
+  # Any is special, it will always end up in the current branch
   return @{$self->releases}[0]->{name} if ($version eq "any");
+
   foreach my $release (@{$self->releases}) {
     if ( $self->_compare_version($release->{upper}, $version)
         && $self->_compare_version($version, $release->{lower})) {
