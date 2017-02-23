@@ -305,8 +305,7 @@ method orphan_branch($branch) {
     return;
   }
   $self->_git->RUN("checkout", "--orphan" , $branch);
-  capture {system("git rm --cached -r .")};
-  capture {system("git clean -f -d")};
+  capture {system("git rm -rf .")};
   return;
 }
 
