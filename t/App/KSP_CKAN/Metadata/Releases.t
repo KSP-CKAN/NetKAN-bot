@@ -29,6 +29,7 @@ subtest 'version compare' => sub {
   is($releases->_compare_version("1.0", "1.1.1"), 0, "1.0 less than 1.1.1");
   is($releases->_compare_version("1.2", "1.1.1"), 1, "1.2 greater than 1.1.1");
   is($releases->_compare_version("1.2", "1.2.0"), 1, "1.2 equal to 1.2.0");
+  is($releases->_compare_version("1.2.0", "1.2"), 1, "1.2.0 equal to 1.2");
   is($releases->_compare_version("1.1.0", "100.0.0"), 0, "1.1.0 less than 100.0.0");
 };
 
