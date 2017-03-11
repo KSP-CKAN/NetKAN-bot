@@ -39,6 +39,11 @@ subtest 'release bracket' => sub {
   is($releases->release("1.1.0"), 'current', "1.1.0 ends up in current");
   is($releases->release("1.3.0"), 'current', "1.3.0 ends up in current");
   is($releases->release("any"), 'current', "any ends up in current");
+  throws_ok(
+    sub { $releases->release("1.0.5") },
+    qr/^No release found, check your release boundaries in releases.json at/,
+    'If the release boundaries are incorrect, die gracefully.'
+  );
 };
 
 $test->cleanup;
