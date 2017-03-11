@@ -111,5 +111,6 @@ method release($version) {
       return $release->{name};
     }
   }
+  croak "No release found, check your release boundaries in releases.json";
 }
 1;
