@@ -274,14 +274,14 @@ method checkout_branch($branch) {
 
   my @branches = $git->branches;
 
-Returns an array of branches.
+Returns an array of the local branches.
 
 =cut
 
-method branches {
-  my @branches = $self->_git->RUN("branch", "-r");
+method branches($remote = 0) {
+  my @branches = $self->_git->RUN("branch");
   foreach my $branch (@branches) {
-    $branch =~ s/^\s+//;
+    $branch =~ s/^(\s+)|(\*\s)//;
   }
   return @branches;
 }
@@ -300,13 +300,29 @@ method orphan_branch($branch) {
     if ($branch eq "master" || $branch eq "staging");
   local $CWD = $self->local."/".$self->working;
 
-  if ( any { $_ eq "origin/$branch" } $self->branches ) {
+  if ( any { $_ eq $branch } $self->branches ) {
     $self->checkout_branch($branch);
     return;
   }
   $self->_git->RUN("checkout", "--orphan" , $branch);
   capture {system("git rm -rf .")};
   return;
+}
+
+=method working_status
+
+  $git->working_status;
+
+Returns true if working directory is clean (no untracked/changed) files
+and false if there files that have been added or changed.
+
+=cut
+
+method working_status() {
+  if (! $self->_git->RUN("status", "-s")) {
+    return 1;
+  }
+  return 0;
 }
 
 =method cherry_pick

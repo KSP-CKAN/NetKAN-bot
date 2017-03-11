@@ -207,16 +207,20 @@ subtest 'Staged Commit' => sub {
 
 subtest 'extreme branching' => sub {
   my @branches = $git->branches;
-  is($branches[0], "origin/HEAD -> origin/master", "'origin/HEAD -> origin/master' retrieved");
-  is($branches[1], "origin/master", "'origin/master' retrieved");
+  is($branches[0], "Testing", "'Testing' retrieved");
+  is($branches[1], "master", "'master' retrieved");
   is(-e $test->tmp."/CKAN-meta/test_file2.ckan", 1, "File exists in master");
+
+  is($git->working_status, 1, "Working directory is clean");
 
   # Oprhaning
   $git->orphan_branch("legacy");
   is(-e $test->tmp."/CKAN-meta/test_file.ckan", undef, "Branch orphaned successfully");
   mkpath($test->tmp."/CKAN-meta/Orphan");
   $test->create_ckan( file => $test->tmp."/CKAN-meta/Orphan/orphan_file.ckan" );
+  is($git->working_status, 0, "Working directory is dirty - files not added");
   $git->add;
+  is($git->working_status, 0, "Working directory is dirty - files not commited");
   $git->commit( all => 1 );
   $git->push;
   my $orphan = App::KSP_CKAN::Tools::Git->new(
