@@ -92,10 +92,15 @@ method _generate_release($files,$release) {
 
   $ckan->orphan_branch($release);
   dircopy($tmp, $ckanpath);
-  $ckan->add;
-  $ckan->commit( all => 1, message => "Files added to $release" );
-  try { $ckan->pull( ours => 1 ) }; # Fails if branch doesn't exist upstream
-  $ckan->push;
+
+  # If there are no changes, there isn't any work to do
+  if (! $ckan->working_status) {
+    try {$ckan->pull()}; # Fails if branch doesn't exist upstream
+    $ckan->add;
+    $ckan->commit( all => 1, message => "Files added to $release" );
+    $ckan->push;
+  }
+
   $ckan->checkout_branch("master");
   remove_tree($self->_tmp);
 }
@@ -133,8 +138,19 @@ method releases($files) {
       next;
     }
 
+    # Lets only release CKANs
+    if (! $file =~ /\.ckan$/) {
+      $self->warn("The ckan '".$file."' doesn't appear to be a ckan");
+      next;
+    }
+
     my $ckan = App::KSP_CKAN::Metadata::Ckan->new(file => $file);
+
     my $version = $ckan->ksp_version ? $ckan->ksp_version : $ckan->ksp_version_max;
+    if (! defined $version) {
+      $version = 'any'
+    }
+
     my $release = $self->_releases->release($version);
     push(@{$branches->{$release}}, $file);
   }
