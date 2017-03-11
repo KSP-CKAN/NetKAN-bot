@@ -3,6 +3,7 @@ package App::KSP_CKAN::WebHooks;
 use Dancer2 appname => "xKanHooks";
 use App::KSP_CKAN::WebHooks::InflateNetKAN;
 use App::KSP_CKAN::WebHooks::MirrorCKAN;
+use App::KSP_CKAN::WebHooks::GenerateReleases;
 use Method::Signatures 20140224;
 use Digest::SHA qw(hmac_sha1_hex);
 use File::Basename 'basename';
@@ -125,6 +126,7 @@ method mirror_github($commits) {
 method mirror_ckans($ckans) {
   fork_call {
     my $mirror = App::KSP_CKAN::WebHooks::MirrorCKAN->new();
+    my $generate = App::KSP_CKAN::WebHooks::GenerateReleases->new();
 
     while (-e "/tmp/xKan_mirror.lock" ) {
       debug("Waiting for lock release");
@@ -137,8 +139,17 @@ method mirror_ckans($ckans) {
     #       twice simultaneously.
     debug("Locking environment");
     touch("/tmp/xKan_mirror.lock");
-    
-    info("Mirroring: ".join(", ", @{$ckans}));
+
+    info("Mirroring and Releasing: ".join(", ", @{$ckans}));
+
+    try {
+      $generate->releases(\@{$ckans});
+    } catch {
+      warning("Generate failed with: $_");
+    };
+
+    # Mirroring second, as we don't want to delay releasing
+    # metadata.
     $mirror->mirror(\@{$ckans});
 
     info("Completed: ".join(", ", @{$ckans}));
