@@ -150,7 +150,7 @@ method _check_lite {
 method _parse_error($error) {
   my $return;
   if ($error =~ /^\d+.\[\d+\].FATAL/m) {
-    $error =~ m{FATAL.+.-.(.+)}m;
+    $error =~ m{FATAL.+?.-.(.+)}m;
     $return = $1;
   } else {
     $error =~ m{^\[ERROR\].(.+)}m;
