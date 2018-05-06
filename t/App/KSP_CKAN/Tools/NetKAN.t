@@ -187,6 +187,12 @@ EOF
     "Error wasn't parsable",
     "Receive 'Error wasn't parsable' when none parsed"
   );
+
+  is (
+    $netkan->_parse_error("2656 [1] FATAL CKAN.NetKAN.Program (null) - 303747d7-0830-4d.tmp is not a valid ZIP file: Error in step EntryHeader for Budget part cost set to 0.cfg: Exception during test - 'Compression method not supported'"),
+    "303747d7-0830-4d.tmp is not a valid ZIP file: Error in step EntryHeader for Budget part cost set to 0.cfg: Exception during test - 'Compression method not supported'",
+    ".+ greediness fixed in regex - #63"
+  );
 };
 
 # Cleanup after ourselves
