@@ -205,6 +205,47 @@ subtest 'Staged Commit' => sub {
   is($branch->current_branch, "master", "We start on master upon instantiation");
 };
 
+subtest 'extreme branching' => sub {
+  my @branches = $git->branches;
+  is($branches[0], "Testing", "'Testing' retrieved");
+  is($branches[1], "master", "'master' retrieved");
+  is(-e $test->tmp."/CKAN-meta/test_file2.ckan", 1, "File exists in master");
+
+  is($git->working_status, 1, "Working directory is clean");
+
+  # Oprhaning
+  $git->orphan_branch("legacy");
+  is(-e $test->tmp."/CKAN-meta/test_file.ckan", undef, "Branch orphaned successfully");
+  mkpath($test->tmp."/CKAN-meta/Orphan");
+  $test->create_ckan( file => $test->tmp."/CKAN-meta/Orphan/orphan_file.ckan" );
+  is($git->working_status, 0, "Working directory is dirty - files not added");
+  $git->add;
+  is($git->working_status, 0, "Working directory is dirty - files not commited");
+  $git->commit( all => 1 );
+  $git->push;
+  my $orphan = App::KSP_CKAN::Tools::Git->new(
+    remote => $test->tmp."/data/CKAN-meta",
+    local => $test->tmp."/orphan",
+    clean => 1,
+  );
+  $orphan->_git;
+  $orphan->orphan_branch("legacy");
+  $orphan->pull;
+  is(-e $test->tmp."/orphan/CKAN-meta/Orphan/orphan_file.ckan", 1, "File was pushed to remote orphan branch");
+  is(-e $test->tmp."/orphan/CKAN-meta/test_file2.ckan", undef, "Existing file not present in orphan branch");
+
+  # Correct deaths
+  throws_ok(
+    sub { $git->orphan_branch("master") },
+    qr/Danger Will Robinson! You're trying to blat the master branch!!!/,
+    'Correctly errors if you try to blat the master branch'
+  );
+  throws_ok(
+    sub { $git->orphan_branch("staging") },
+    qr/Danger Will Robinson! You're trying to blat the staging branch!!!/,
+    'Correctly errors if you try to blat the staging branch'
+  );
+};
 
 # Cleanup after ourselves
 $test->cleanup;

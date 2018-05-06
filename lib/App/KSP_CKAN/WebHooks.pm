@@ -3,6 +3,7 @@ package App::KSP_CKAN::WebHooks;
 use Dancer2 appname => "xKanHooks";
 use App::KSP_CKAN::WebHooks::InflateNetKAN;
 use App::KSP_CKAN::WebHooks::MirrorCKAN;
+use App::KSP_CKAN::WebHooks::GenerateReleases;
 use Method::Signatures 20140224;
 use Digest::SHA qw(hmac_sha1_hex);
 use File::Basename 'basename';
@@ -21,13 +22,13 @@ use File::Touch;
 
 post '/inflate' => sub {
   my @identifiers;
-  
+
   try {
     @identifiers = @{from_json(request->body)->{identifiers}};
   };
 
   if ($#identifiers == -1) {
-    info("No identifiers received"); 
+    info("No identifiers received");
     send_error "An array of identifiers is required", 400;
   }
 
@@ -50,9 +51,9 @@ post '/gh/:task' => sub {
     send_error("post content required", 400);
   }
 
-  if ( $signature ne calc_gh_signature( body => $body) ) { 
+  if ( $signature ne calc_gh_signature( body => $body) ) {
     send_error("Signature mismatch", 400);
-  } 
+  }
 
   my @commits;
   my $sender;
@@ -64,7 +65,7 @@ post '/gh/:task' => sub {
   };
 
   if ( $#commits == -1 && $task ne "release" ) {
-    info("No commits received"); 
+    info("No commits received");
     return { "message" => "No add/remove commits received" };
   }
 
@@ -99,7 +100,7 @@ method mirror_github($commits) {
   foreach my $commit (@{$commits}) {
     push(@files, (@{$commit->{added}},@{$commit->{modified}}));
   }
-  
+
   if ($#files == -1) {
     info("Nothing add/modified");
     return;
@@ -113,7 +114,7 @@ method mirror_github($commits) {
       push(@ckans, $file);
     }
   }
-  
+
   if ($#ckans == -1) {
     info("No ckans found in file list");
     return;
@@ -125,21 +126,32 @@ method mirror_github($commits) {
 method mirror_ckans($ckans) {
   fork_call {
     my $mirror = App::KSP_CKAN::WebHooks::MirrorCKAN->new();
+    my $generate = App::KSP_CKAN::WebHooks::GenerateReleases->new();
 
     while (-e "/tmp/xKan_mirror.lock" ) {
       debug("Waiting for lock release");
       sleep 5;
     }
-    
+
     # TODO: Do something better, this doesn't handle stale
     #       locks at all. Also if following requests come in
     #       at exactly 5 seconds apart we could still fork
     #       twice simultaneously.
     debug("Locking environment");
     touch("/tmp/xKan_mirror.lock");
-    
-    info("Mirroring: ".join(", ", @{$ckans}));
+
+    info("Mirroring and Releasing: ".join(", ", @{$ckans}));
+
+    try {
+      $generate->releases(\@{$ckans});
+    } catch {
+      warning("Generate failed with: $_");
+    };
+
+    # Mirroring second, as we don't want to delay releasing
+    # metadata.
     $mirror->mirror(\@{$ckans});
+
     info("Completed: ".join(", ", @{$ckans}));
 
     return;
@@ -160,7 +172,7 @@ method inflate_github($commits) {
   foreach my $commit (@{$commits}) {
     push(@files, (@{$commit->{added}},@{$commit->{modified}}));
   }
-  
+
   if ($#files == -1) {
     info("Nothing add/modified");
     return;
@@ -175,7 +187,7 @@ method inflate_github($commits) {
       push(@netkans, basename($file,".netkan"));
     }
   }
-  
+
   if ($#netkans == -1) {
     info("No netkans found in file list");
     return;
@@ -192,14 +204,14 @@ method inflate_netkans($identifiers) {
       debug("Waiting for lock release");
       sleep 5;
     }
-    
+
     # TODO: Do something better, this doesn't handle stale
     #       locks at all. Also if following requests come in
     #       at exactly 5 seconds apart we could still fork
     #       twice simultaneously.
     debug("Locking environment");
     touch("/tmp/xKan_netkan.lock");
-    
+
     info("Inflating: ".join(", ", @{$identifiers}));
     $inflater->inflate(\@{$identifiers});
     info("Completed: ".join(", ", @{$identifiers}));

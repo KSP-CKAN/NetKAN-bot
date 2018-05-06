@@ -12,6 +12,7 @@ use Capture::Tiny qw(capture capture_stdout);
 use File::chdir;
 use File::Path qw(remove_tree mkpath);
 use Digest::file qw(digest_file_hex);
+use List::MoreUtils qw(any);
 use Moo;
 use namespace::clean;
 
@@ -32,7 +33,7 @@ use namespace::clean;
 =head1 DESCRIPTION
 
 CKAN's development + build process is built around git. The
-things we need to do are pretty common and all git 
+things we need to do are pretty common and all git
 interactions will fit nicely here.
 
 The wrapper can be called with the following options.
@@ -137,8 +138,21 @@ Returns the current branch you're on.
 =cut
 
 method current_branch {
-  my @parse = $self->_git->rev_parse(qw|--abbrev-ref HEAD|);
-  return $parse[0];
+  my @parse;
+  try {
+    @parse = $self->_git->rev_parse(qw|--abbrev-ref HEAD|);
+  };
+
+  # It would appear Orphan branches don't appear in the rev parse.
+  # This'll maintain existing behaviour except for the Orphaned branches.
+  my $branch = $parse[0];
+  if ( ! $branch ) {
+    local $CWD = $self->local."/".$self->working;
+    $branch = capture { system("git symbolic-ref -q HEAD") };
+    chomp($branch);
+    $branch =~ s/refs\/heads\///;
+  }
+  return $branch;
 }
 
 =method add
@@ -150,7 +164,7 @@ This method takes an optional filename, if blank will perform a
 
 =cut
 
-# TODO: It'd probably be nice to allow a list of 
+# TODO: It'd probably be nice to allow a list of
 # files
 method add($file?) {
   if ($file) {
@@ -174,11 +188,11 @@ method clean_untracked {
 }
 
 =method changed
-  
+
   my @changed = $git->changed;
 
-Will return a list of changed files when compared to 
-origin/current_branch. Can be used in scalar context 
+Will return a list of changed files when compared to
+origin/current_branch. Can be used in scalar context
 (number of committed files) or an if block.
 
   if ($git->changed) {
@@ -256,6 +270,61 @@ method checkout_branch($branch) {
   return;
 }
 
+=method branches
+
+  my @branches = $git->branches;
+
+Returns an array of the local branches.
+
+=cut
+
+method branches($remote = 0) {
+  my @branches = $self->_git->RUN("branch");
+  foreach my $branch (@branches) {
+    $branch =~ s/^(\s+)|(\*\s)//;
+  }
+  return @branches;
+}
+
+=method orphan_branch
+
+  $git->orphan_branch("legacy");
+
+Creates an orphaned branch if it doesn't already exist. Bails if attempting to
+switch to 'master' or 'staging'.
+
+=cut
+
+method orphan_branch($branch) {
+  croak "Danger Will Robinson! You're trying to blat the $branch branch!!!"
+    if ($branch eq "master" || $branch eq "staging");
+  local $CWD = $self->local."/".$self->working;
+
+  if ( any { $_ eq $branch } $self->branches ) {
+    $self->checkout_branch($branch);
+    return;
+  }
+  $self->_git->RUN("checkout", "--orphan" , $branch);
+  capture {system("git rm -rf .")};
+  return;
+}
+
+=method working_status
+
+  $git->working_status;
+
+Returns true if working directory is clean (no untracked/changed) files
+and false if there files that have been added or changed.
+
+=cut
+
+method working_status() {
+  if (! $self->_git->RUN("status", "-s")) {
+    return 1;
+  }
+  return 0;
+}
+
 =method cherry_pick
 
   $git->cherry_pick($commit);
@@ -271,9 +340,9 @@ method cherry_pick($commit) {
 
 =method staged_commit
 
-  $git->staged_commit( 
+  $git->staged_commit(
     file        => "/path/to/ExampleNetKAN.netkan",
-    identifier  => "ExampleNetKAN", 
+    identifier  => "ExampleNetKAN",
     message     => "NetKAN bot loves to commit!",
   );
 
@@ -315,26 +384,26 @@ method staged_commit(:$identifier, :$file, :$message = "Generic Commit") {
   my $hash = digest_file_hex( $file, "SHA-1" );
   my $commit = $self->last_commit;
 
-  # We need to go back to master to avoid issues diverging from the 
-  # random branch if our staging branch doesn't exist. 
+  # We need to go back to master to avoid issues diverging from the
+  # random branch if our staging branch doesn't exist.
   $self->checkout_branch($self->branch);
 
   # Lets start with staging
   $self->checkout_branch("staging");
-  
-  # We don't want to repeatedly PR changes  
+
+  # We don't want to repeatedly PR changes
   if ( -e $file && digest_file_hex( $file, "SHA-1" ) eq $hash ) {
     $self->delete_branch($random_branch);
     return 0;
   }
-  
+
   $self->cherry_pick($commit);
   # Upstream pulling needs to be done after commiting.
   try { # Our remote may not have the branch, we don't mind.
     $self->pull( ours => 1 );
   };
   $self->push;
- 
+
   # We need to go back to our original branch to avoid
   # diverging from our staging branch
   $self->checkout_branch($self->branch);
@@ -355,7 +424,7 @@ method staged_commit(:$identifier, :$file, :$message = "Generic Commit") {
 }
 
 =method delete_branch
-  
+
   $git->delete_branch($branch);
 
 Deletes the requested branch.
@@ -367,7 +436,7 @@ method delete_branch($branch) {
 }
 
 =method reset
-  
+
   $git->reset( file => $file );
 
 Will reset the uncommitted file.
@@ -380,7 +449,7 @@ method reset(:$file) {
 }
 
 =method push
-  
+
   $git->push;
 
 Will push the current checked out local branch to origin/branch.
@@ -413,7 +482,7 @@ method pull(:$ours?,:$theirs?) {
 }
 
 =method last_commit
-  
+
   $git->last_commit;
 
 Will return the full hash of the last commit.

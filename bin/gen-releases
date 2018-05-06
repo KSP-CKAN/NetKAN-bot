@@ -1,0 +1,122 @@
+#!/usr/bin/env perl
+
+use v5.010;
+use strict;
+use autodie qw(:all);
+use App::KSP_CKAN::WebHooks::GenerateReleases;
+use App::KSP_CKAN::Metadata::Ckan;
+use App::KSP_CKAN::Tools::Config;
+use App::KSP_CKAN::Tools::Git;
+use Getopt::Long;
+use File::Spec;
+use File::chdir;
+use File::Path qw( mkpath );
+use File::Find::Rule;
+
+# PODNAME: gen-releases
+
+# ABSTRACT: gen-releases - script for generating releases
+
+# VERSION
+
+=head1 SYNOPSIS
+
+Usage:
+
+  gen-releases --yesterday                : Adds all ckans from yesterday into relevant releases
+  gen-releases --all                      : Adds/updates all releases into relevant releases
+
+  Debugging commands:
+    
+  mirror-ckan --debug                     : Run with debugging enabled.
+
+=head1 Description
+
+This is a simple cli utility for generating the relevant CKAN-meta releases
+
+=head1 BUGS/Features Requests
+
+Please submit any bugs, feature requests to
+L<https://github.com/KSP-CKAN/NetKAN-bot/issues> .
+
+Contributions are more than welcome!
+
+=head1 SEE ALSO
+
+L<App::KSP-CKAN>
+
+=cut
+
+my $PROGNAME = (File::Spec->splitpath($0))[2];
+$PROGNAME ||= 'gen-releases';
+
+my $DEBUG  = 0;
+my $filename;
+
+# TODO: Allow config to be specified
+my $working = $ENV{HOME}."/CKAN-Webhooks/gen-releases";
+if ( ! -d $working ) {
+  mkpath($working);
+}
+my $config = App::KSP_CKAN::Tools::Config->new(
+  working   => $working,
+  debugging => $DEBUG,
+);
+my $git = App::KSP_CKAN::Tools::Git->new(
+  remote  => $config->CKAN_meta,
+  local   => $config->working,
+);
+$git->pull;
+my $generate = App::KSP_CKAN::WebHooks::GenerateReleases->new(
+  config => $config,
+);
+
+# TODO: It'd be nice to specify a path/multiple files 
+my $getopts_rc = GetOptions(
+  "version"       => \&version,
+  "debug!"        => \$DEBUG,
+  "all"           => \&all,
+  "yesterday"     => \&yesterday,
+
+  "help|?"        => \&print_usage,
+);
+
+sub version {
+  $::VERSION ||= "Unreleased";
+  say "$PROGNAME version          : $::VERSION";
+  exit 1;
+}
+
+sub print_usage {
+  say q{
+  Usage:
+
+  gen-releases --yesterday                : Adds all ckans from yesterday into relevant releases
+  gen-releases --all                      : Adds/updates all releases into relevant releases
+  
+  Debugging commands:
+    
+  mirror-ckan --debug                     : Run with debugging enabled.
+  mirror-ckan --version                   : Print version string
+
+  For more documentation, use `perldoc gen-releases`.
+  };
+
+  exit 1;
+}
+
+sub yesterday {
+  my @files = $git->yesterdays_diff;
+  $generate->releases(\@files);
+  exit 0;
+}
+
+sub all {
+  local $CWD = $working."/CKAN-meta";
+  my @files = File::Find::Rule->file()->name('*.ckan')->in(".");
+  $generate->releases(\@files);
+  exit 0;
+}
+
+exit 0;
+__END__
