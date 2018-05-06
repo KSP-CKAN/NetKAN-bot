@@ -23,6 +23,7 @@ subtest 'licenses' => sub {
       "CC-BY-NC", "CC-BY-NC-1.0", "CC-BY-NC-2.0", "CC-BY-NC-2.5", "CC-BY-NC-3.0", "CC-BY-NC-4.0",
       "CC-BY-NC-SA", "CC-BY-NC-SA-1.0", "CC-BY-NC-SA-2.0", "CC-BY-NC-SA-2.5", "CC-BY-NC-SA-3.0", "CC-BY-NC-SA-4.0",
       "CC-BY-NC-ND", "CC-BY-NC-ND-1.0", "CC-BY-NC-ND-2.0", "CC-BY-NC-ND-2.5", "CC-BY-NC-ND-3.0", "CC-BY-NC-ND-4.0",
+      "CC-BY-ND", "CC-BY-ND-1.0", "CC-BY-ND-2.0", "CC-BY-ND-2.5", "CC-BY-ND-3.0", "CC-BY-ND-4.0",
       "CC0",
       "CDDL", "CPL",
       "EFL-1.0", "EFL-2.0",
@@ -42,9 +43,9 @@ subtest 'licenses' => sub {
       "WTFPL",
       "Unlicense",
       "open-source", "unrestricted" ];
-  
+
   my @test = $licenses->redistributable_licenses;
-  
+
   is_deeply(
     @test,
     @licenses,
@@ -54,7 +55,7 @@ subtest 'licenses' => sub {
 
 subtest 'license urls' => sub {
   is(
-    $licenses->license_url("GPL-2.0"), 
+    $licenses->license_url("GPL-2.0"),
     "http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html",
     "GPL-2.0 license url returned successfully",
   );
