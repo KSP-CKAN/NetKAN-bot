@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use autodie qw(:all);
 use Sys::RunAlone;
-use Time::Limit '3000'; # Something wrong if we are taking longer than 50 mins
+use Time::Limit '10800'; # Something wrong if we are taking longer than 3 hours
 use Getopt::Long;
 use File::Spec;
 use App::KSP_CKAN::NetKAN;
