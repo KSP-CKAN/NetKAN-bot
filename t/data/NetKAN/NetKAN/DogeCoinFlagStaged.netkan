@@ -18,5 +18,5 @@
     "resources"         : {
         "homepage"      : "https://www.reddit.com/r/dogecoin/comments/1tdlgg/i_made_a_more_accurate_dogecoin_and_a_ksp_flag/"
     },
-    "x-netkan-staging"  : 1
+    "x_netkan_staging"  : 1
 }
