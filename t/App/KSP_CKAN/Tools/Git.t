@@ -25,14 +25,14 @@ subtest 'Working Dir Parsing' => sub {
     'git@github.com:techman83/CKAN-meta.git',
     'https://github.com/techman83/CKAN-meta.git',
   );
-  
+
   foreach my $working (@test_git) {
     my $git = App::KSP_CKAN::Tools::Git->new(
       remote => $working,
       local => $test->tmp,
     );
-  
-    is($git->working, 'CKAN-meta', "'CKAN-meta' parsed from $working"); 
+
+    is($git->working, 'CKAN-meta', "'CKAN-meta' parsed from $working");
   };
 };
 
@@ -64,7 +64,7 @@ subtest 'Committing' => sub {
   is($git->changed, 1, "Commit not yet pushed");
   $git->push;
   is($git->changed, 0, "Commit pushed");
-  
+
   # Test committing all files
   for my $filename (qw(test_file2.ckan test_file3.ckan)) {
     $test->create_ckan( file => $test->tmp."/CKAN-meta/".$filename );
@@ -104,7 +104,7 @@ is(-e $test->tmp."/CKAN-meta/test_pull.ckan", 1, "Pull successful");
 # Test accidental deletes
 unlink($test->tmp."/CKAN-meta/test_file.ckan");
 $git->add;
-is($git->changed, 2, "File delete not commited");
+is($git->changed, 2, "File delete not committed");
 
 # Test cleanup
 $test->create_ckan( file => $test->tmp."/CKAN-meta/cleaned_file.ckan" );
@@ -139,7 +139,7 @@ subtest 'Git Errors' => sub {
 subtest 'Staged Commit' => sub {
   my $file = $test->tmp."/CKAN-meta/staged.ckan";
   my $identifier = "Testing";
-  
+
   # Initial File Creation
   $test->create_ckan( file => $file );
   $git->add($file);
@@ -149,21 +149,21 @@ subtest 'Staged Commit' => sub {
     identifier  => $identifier,
     message     => "New File",
   );
-  is($success, 1, "We commited a new file to staging");
+  is($success, 1, "We committed a new file to staging");
   $git->_hard_clean;
 
   is($git->current_branch, "master", "We returned to the master branch");
-  isnt(-e $file, 1, "Our staged file wasn't commited to master");
-  
+  isnt(-e $file, 1, "Our staged file wasn't committed to master");
+
   $git->checkout_branch("staging");
   is($git->current_branch, "staging", "We are on to the staging branch");
   $git->_hard_clean;
-  is(digest_file_hex( $file, "SHA-1" ), $hash, "Our staging branch was commited to");
+  is(digest_file_hex( $file, "SHA-1" ), $hash, "Our staging branch was committed to");
   $git->checkout_branch($identifier);
   is($git->current_branch, $identifier, "We are on the $identifier branch");
   $git->_hard_clean;
-  is(digest_file_hex( $file, "SHA-1" ), $hash, "Our $identifier branch was commited to");
-  
+  is(digest_file_hex( $file, "SHA-1" ), $hash, "Our $identifier branch was committed to");
+
   # File update
   $test->create_ckan( file => $file, random => 0 );
   $hash = digest_file_hex( $file, "SHA-1" );
@@ -174,13 +174,13 @@ subtest 'Staged Commit' => sub {
     message     => "Modified File",
   );
   $git->_hard_clean;
-  is($update, 1, "We commited a change to staging");
- 
-  # Get the last commit ID from staging 
+  is($update, 1, "We committed a change to staging");
+
+  # Get the last commit ID from staging
   $git->checkout_branch("staging");
   my $commit = $git->last_commit;
   $git->checkout_branch("master");
-  
+
   # Update with no changes
   $test->create_ckan( file => $file, random => 0 );
   $git->add($file);

@@ -100,20 +100,20 @@ method _build_license {
 }
 
 method _build_staging {
-  return $self->_raw->{config}{'x-netkan-staging'} ? $self->_raw->{config}{'x-netkan-staging'} : 0 ;
+  return $self->_raw->{config}{'x_netkan_staging'} ? $self->_raw->{config}{'x_netkan_staging'} : 0 ;
 }
 
 =method licenses
-  
+
   $ckan->licenses();
 
 Returns the license field as an array. Because unless there is
 multiple values it won't be.
 
 =cut
- 
-# Sometimes we always want an array. 
-method licenses { 
+
+# Sometimes we always want an array.
+method licenses {
   my @licenses = reftype \$self->license ne "SCALAR" ? @{$self->license} : $self->license;
   return \@licenses;
 }
