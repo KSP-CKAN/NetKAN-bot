@@ -8,6 +8,7 @@ use Method::Signatures 20140224;
 use File::chdir;
 use Carp qw( croak );
 use App::KSP_CKAN::Status;
+use App::KSP_CKAN::DownloadCounts;
 use App::KSP_CKAN::Tools::Http;
 use App::KSP_CKAN::Tools::Git;
 use App::KSP_CKAN::Tools::NetKAN;
@@ -115,6 +116,18 @@ method _inflate_all(:$rescan = 1) {
   return;
 }
 
+# Calculate the download counts and save them to CKAN-meta/download_counts.json
+# Works for mods with a $kref on Curse, GitHub, or SpaceDock.
+# Expected to take a few minutes.
+method _update_download_counts() {
+  my $counter = App::KSP_CKAN::DownloadCounts->new(
+    config    => $self->config,
+    ckan_meta => $self->_CKAN_meta,
+  );
+  $counter->get_counts;
+  $counter->write_json;
+}
+
 method _push {
   $self->_CKAN_meta->pull(ours => 1);
   $self->_CKAN_meta->push;
@@ -131,6 +144,7 @@ it into CKAN-meta (or whichever repository is configured)
 method full_index {
   $self->_mirror_files;
   $self->_inflate_all;
+  $self->_update_download_counts;
   if ( ! $self->is_debug() ) {
     $self->_push;
     $self->_status->write_json;
