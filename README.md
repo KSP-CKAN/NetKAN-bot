@@ -3,7 +3,7 @@ App::KSP-CKAN    [![Build Status](https://travis-ci.org/KSP-CKAN/NetKAN-bot.svg?
 Non Perl Dependencies
 =====================
 ```bash
-apt-get install liblocal-lib-perl cpanminus install build-essential mono-complete libcurl4-openssl-dev python-jsonschema  
+apt-get install liblocal-lib-perl cpanminus build-essential mono-complete libcurl4-openssl-dev python-jsonschema libdist-zilla-perl
 ```
 
 NetKAN will need certs for mono
@@ -22,6 +22,7 @@ Installation
 
 Install from git, you can then use:
 ```bash
+$ touch Changes
 $ dzil authordeps | cpanm
 $ dzil listdeps   | cpanm
 $ dzil install
