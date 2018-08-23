@@ -20,7 +20,8 @@ my $config = App::KSP_CKAN::Tools::Config->new(
 
 is($config->CKAN_meta, $test->_tmp."/data/CKAN-meta", "NetKAN loaded from config");
 is($config->NetKAN, $test->_tmp."/data/NetKAN", "NetKAN loaded from config");
-is($config->GH_token, "123456789", "GH_token loaded from config");
+my $token = $ENV{GH_token} // '123456789';
+is($config->GH_token, $token, "GH_token loaded from config");
 is($config->working, $test->_tmp."/working", "working loaded from config");
 is(-d $config->working, 1, "working was automatically created");
 is($config->cache, $test->_tmp."/cache", "cache loaded from config");

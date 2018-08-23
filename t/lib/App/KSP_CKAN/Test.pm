@@ -234,7 +234,10 @@ method create_config(:$optional = 1, :$nogh = 0) {
 
   # TODO: This is a little ugly.
   if ($optional) {
-    print $in "GH_token=123456789\n" if ! $nogh;
+    if (!$nogh) {
+      my $token = $ENV{GH_token} // '123456789';
+      print $in "GH_token=$token\n";
+    }
     print $in "working=".$self->_tmp."/working\n";
     print $in "cache=".$self->_tmp."/cache\n";
     print $in "IA_collection=collection\n";
