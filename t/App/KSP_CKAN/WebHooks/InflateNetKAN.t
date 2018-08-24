@@ -20,7 +20,7 @@ subtest 'Scalar Identifier' => sub {
   $test->create_repo("NetKAN");
   
   # Config
-  $test->create_config(nogh => 1);
+  $test->create_config();
   my $config = App::KSP_CKAN::Tools::Config->new(
     file => $test->tmp."/.ksp-ckan",
   );
@@ -54,7 +54,7 @@ subtest 'Array of Identifiers' => sub {
   $test->create_repo("NetKAN");
   
   # Config
-  $test->create_config(nogh => 1);
+  $test->create_config();
   my $config = App::KSP_CKAN::Tools::Config->new(
     file => $test->tmp."/.ksp-ckan",
   );

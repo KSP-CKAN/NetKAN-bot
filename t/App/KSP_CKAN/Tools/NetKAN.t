@@ -18,7 +18,7 @@ use App::KSP_CKAN::Status;
 my $test = App::KSP_CKAN::Test->new();
 
 # Config
-$test->create_config(nogh => 1);
+$test->create_config();
 my $config = App::KSP_CKAN::Tools::Config->new(
   file => $test->tmp."/.ksp-ckan",
 );
@@ -85,7 +85,7 @@ TODO: {
   isnt( $netkan->inflate, 0, "Return failure correctly" );
 
   subtest 'Status Setting' => sub {
-    like($status->status->{'DogeCoinFlag-broken'}{last_error}, qr/^JSON deserialization error.+/, "'last_error' set on failure");
+    like($status->status->{'DogeCoinFlag-broken'}{last_error}, qr/Required property 'version' not found/, "'last_error' set on failure");
     is($status->status->{'DogeCoinFlag-broken'}{failed}, 1, "'failed' true on failure");
     is($status->status->{'DogeCoinFlag-broken'}{last_indexed}, undef, "'last_index' undef when no successful indexing has ever occured");
     is($status->status->{'DogeCoinFlag'}{last_error}, undef, "'last_error' undef on success");
