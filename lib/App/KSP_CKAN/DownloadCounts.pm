@@ -10,7 +10,7 @@ use File::chdir;
 use File::Slurper qw(read_text write_text);
 use File::Basename qw(basename);
 use Try::Tiny;
-use JSON;
+use JSON::PP;
 use File::Path qw(mkpath);
 use App::KSP_CKAN::Tools::Git;
 use Moo;
@@ -57,7 +57,12 @@ method _build__http {
 }
 
 method _build__json {
-  return JSON->new->allow_blessed(1)->convert_blessed(1);
+  return JSON::PP->new
+    ->indent(1)
+    ->indent_length(0)
+    ->canonical(1)
+    ->allow_blessed(1)
+    ->convert_blessed(1);
 }
 
 method _build__NetKAN {
