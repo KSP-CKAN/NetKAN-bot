@@ -57,7 +57,11 @@ method _build__http {
 }
 
 method _build__json {
-  return JSON->new->allow_blessed(1)->convert_blessed(1);
+  return JSON->new
+    ->indent(1)
+    ->canonical(1)
+    ->allow_blessed(1)
+    ->convert_blessed(1);
 }
 
 method _build__NetKAN {
