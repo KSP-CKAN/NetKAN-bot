@@ -97,16 +97,25 @@ method _get_count_from_github($id) {
       my $token   = $self->config->GH_token;
       my %headers = ( 'Authorization' => "token $token" );
       my %options = ( 'headers'       => \%headers      );
-      my $gh_json = $self->_json->decode(
+      my $rels_json = $self->_json->decode(
         $self->_http->get("https://api.github.com/repos/$user/$proj/releases", \%options)->{content}
       );
       my $sum = 0;
-      foreach my $rel (@{$gh_json}) {
+      foreach my $rel (@{$rels_json}) {
         foreach my $asset (@{$rel->{assets}}) {
           if (defined($asset->{download_count})) {
             $sum += $asset->{download_count};
           }
         }
+      }
+      # Look for an older fork
+      my $repo_json = $self->_json->decode(
+        $self->_http->get("https://api.github.com/repos/$user/$proj", \%options)->{content}
+      );
+      if (defined($repo_json->{parent}))
+      {
+        my $parent_sum = $self->_get_count_from_github($repo_json->{parent}->{full_name});
+        $sum += $parent_sum;
       }
       return $sum;
     };
@@ -189,7 +198,7 @@ method get_counts {
 
 =method write_json
 
-  download_counts->write_json
+  $download_counts->write_json
 
 Writes our download counts file out to disk.
 
