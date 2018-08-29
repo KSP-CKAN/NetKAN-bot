@@ -6,6 +6,7 @@ use warnings;
 use autodie;
 use Method::Signatures 20140224;
 use File::chdir;
+use Time::Seconds;
 use Carp qw( croak );
 use App::KSP_CKAN::Status;
 use App::KSP_CKAN::DownloadCounts;
@@ -124,8 +125,11 @@ method _update_download_counts() {
     config    => $self->config,
     ckan_meta => $self->_CKAN_meta,
   );
-  $counter->get_counts;
-  $counter->write_json;
+  my $data_age = time() - $counter->last_run;
+  if ($data_age >= ONE_DAY) {
+    $counter->get_counts;
+    $counter->write_json;
+  }
 }
 
 method _push {

@@ -449,4 +449,21 @@ method yesterdays_diff {
   return split("\n", $changed);
 }
 
+method last_commit_time($file) {
+  local $CWD = $self->local . '/' . $self->working;
+  my $output = capture_stdout { system(
+    'git', 'log',
+      # Just the most recent commit for this file
+      '-n', '1',
+      # Get output in epoch+tz format
+      "--pretty=%ad", '--date=raw',
+      '--', $file
+    )
+  };
+  if (my ($epoch) = $output =~ m{^(\d+)}) {
+    return $epoch;
+  }
+  return;
+}
+
 1;
