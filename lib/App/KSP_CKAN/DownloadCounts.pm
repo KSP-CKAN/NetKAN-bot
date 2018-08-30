@@ -213,4 +213,16 @@ method write_json {
   );
 }
 
+=method last_run
+
+  $download_counts->last_run
+
+Returns the timestamp of the last commit for download_counts.json
+
+=cut
+
+method last_run {
+  return $self->ckan_meta->last_commit_time($self->_output_file) || 0;
+}
+
 1;
