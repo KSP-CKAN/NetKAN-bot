@@ -68,6 +68,7 @@ method inflate($identifiers) {
       ckan_meta   => $self->_CKAN_meta,
       status      => $self->_status,
       rescan      => 1,
+      overwrite   => 1,
     );
     $netkan->inflate;
   }

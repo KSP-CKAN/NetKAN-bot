@@ -60,6 +60,7 @@ has 'file'                => ( is => 'ro', required => 1 );
 has 'ckan_meta'           => ( is => 'ro', required => 1, isa => $Meta );
 has 'status'              => ( is => 'rw', required => 1, isa => $Status );
 has 'rescan'              => ( is => 'ro', default => sub { 1 } );
+has 'overwrite'           => ( is => 'ro', default => sub { 0 } );
 has 'token'               => ( is => 'ro', lazy => 1, builder => 1 );
 has 'netkan'              => ( is => 'ro', lazy => 1, builder => 1 );
 has 'cache'               => ( is => 'ro', lazy => 1, builder => 1 );
@@ -96,11 +97,13 @@ method _build__output {
 }
 
 method _build__cli {
-  if ($self->token) {
-    return $self->netkan." --outputdir=".$self->_output." --cachedir=".$self->_cache." --github-token=".$self->token." ".$self->file;
-  } else {
-    return $self->netkan." --outputdir=".$self->_output." --cachedir=".$self->_cache." ".$self->file;
-  }
+  my @opts = (
+    '--outputdir=' . $self->_output,
+    '--cachedir='  . $self->_cache,
+  );
+  push @opts, '--github-token=' . $self->token if $self->token;
+  push @opts, '--overwrite-cache'              if $self->overwrite;
+  return join(' ', $self->netkan, @opts, $self->file);
 }
 
 method _build_cache {
@@ -172,13 +175,13 @@ method _commit($file) {
   } 
   
   if ($self->is_debug()) {
-    $self->debug("$changed would have been commited");
+    $self->debug("$changed would have been committed");
     $self->ckan_meta->reset(file => $file);
     return 0;
   } 
   
   if ( ! $self->_netkan_metadata->staging ) {
-    $self->info("Commiting $changed");
+    $self->info("Committing $changed");
     $self->ckan_meta->commit(
       file    => $file,
       message => "NetKAN generated mods - $changed",
