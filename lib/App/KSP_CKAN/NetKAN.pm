@@ -31,7 +31,7 @@ use namespace::clean;
 =head1 DESCRIPTION
 
 Is a wrapper for the NetKAN inflater. Initially it will
-just wrap and capture errors, but the intention is to 
+just wrap and capture errors, but the intention is to
 add helper methods to check for changes in remote meta
 data and only run the inflater when required.
 
@@ -77,7 +77,7 @@ method _mirror_files {
   my $config = $self->config;
 
   # netkan.exe
-  $self->_http->mirror( 
+  $self->_http->mirror(
     url   => $config->netkan_exe,
     path  => $config->working."/netkan.exe",
     exe   => 1,
@@ -104,7 +104,10 @@ method _inflate_all(:$rescan = 1) {
   $self->_CKAN_meta->pull;
   $self->_NetKAN->pull;
   local $CWD = $self->config->working."/".$self->_NetKAN->working;
-  foreach my $file (glob("NetKAN/*.netkan")) {
+
+  my @files = glob("NetKAN/*.netkan");
+  $self->_status->prune_missing(map { ($_ =~ m{([^/.]+)\.netkan$})[0] } @files);
+  foreach my $file (@files) {
     my $netkan = App::KSP_CKAN::Tools::NetKAN->new(
       config      => $self->config,
       file        => $file,
@@ -138,7 +141,7 @@ method _push {
   return;
 }
 
-=method full_index 
+=method full_index
 
 Performs a full index of the NetKAN metadata and pushes
 it into CKAN-meta (or whichever repository is configured)
@@ -151,7 +154,6 @@ method full_index {
   $self->_update_download_counts;
   if ( ! $self->is_debug() ) {
     $self->_push;
-    $self->_status->write_json;
   }
   return;
 }
@@ -171,7 +173,6 @@ method lite_index {
   $self->_inflate_all( rescan => 0 );
   if ( ! $self->is_debug() ) {
     $self->_push;
-    $self->_status->write_json;
   }
   return;
 }

@@ -37,7 +37,7 @@ use namespace::clean;
 =head1 DESCRIPTION
 
 Is a wrapper for the NetKAN inflater. Initially it will
-just wrap and capture errors, but the intention is to 
+just wrap and capture errors, but the intention is to
 add helper methods to check for changes in remote meta
 data and only run the inflater when required.
 
@@ -169,14 +169,14 @@ method _commit($file) {
     $self->ckan_meta->clean_untracked;
     $self->_status->failure("Schema validation failed");
     return 1;
-  } 
-  
+  }
+
   if ($self->is_debug()) {
     $self->debug("$changed would have been commited");
     $self->ckan_meta->reset(file => $file);
     return 0;
-  } 
-  
+  }
+
   if ( ! $self->_netkan_metadata->staging ) {
     $self->info("Commiting $changed");
     $self->ckan_meta->commit(
@@ -201,8 +201,12 @@ method _commit($file) {
   return 1;
 }
 
+method _save_status() {
+  $self->status->update_status($self->_basename, $self->_status);
+}
+
 =method inflate
-  
+
   $netkan->inflate;
 
 Inflates our metadata.
@@ -213,9 +217,10 @@ method inflate {
   $self->_status->checked;
 
   if (! $self->rescan ) {
+    $self->_save_status();
     return;
   }
-  
+
   # We won't know if NetKAN actually made a change and
   # it doesn't know either, it just produces a ckan file.
   # This gives us a hash of all files in the directory
@@ -223,24 +228,28 @@ method inflate {
   my $md5 = $self->_output_md5;
 
   $self->debug("Inflating ".$self->file);
-  my ($stderr, $stdout, $exit) = capture { 
+  my ($stderr, $stdout, $exit) = capture {
     system($self->_cli);
   };
 
   $self->_status->inflated;
 
-  if ($exit) { 
-    my $error = $stdout ? $self->_parse_error($stdout) : $self->_parse_error($stderr); 
+  if ($exit) {
+    my $error = $stdout ? $self->_parse_error($stdout) : $self->_parse_error($stderr);
     $self->warn("'".$self->file."' - ".$error);
     $self->_status->failure($error);
+    $self->_save_status();
     return $exit;
   }
 
   if ($md5 ne $self->_output_md5) {
-    return $self->_commit($self->_newest_file);
+    my $ret = $self->_commit($self->_newest_file);
+    $self->_save_status();
+    return $ret;
   }
 
   $self->_status->success;
+  $self->_save_status();
   return 0;
 }
 
