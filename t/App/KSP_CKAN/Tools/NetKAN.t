@@ -53,7 +53,7 @@ $http->mirror( url => $config->ckan_schema, path => $config->working."/CKAN.sche
 
 use_ok("App::KSP_CKAN::Tools::NetKAN");
 my $netkan = App::KSP_CKAN::Tools::NetKAN->new(
-  config    => $config, 
+  config    => $config,
   netkan    => $test->tmp."/netkan.exe",
   cache     => $test->tmp."/cache", # TODO: Test default cache location
   ckan_meta => $ckan,
@@ -64,7 +64,7 @@ my $netkan = App::KSP_CKAN::Tools::NetKAN->new(
 # TODO: Fix this on travis.
 TODO: {
    todo_skip "These tests are broken on travis", 7 if $ENV{TRAVIS};
-  
+
   my $md5 = $netkan->_output_md5;
   isnt($md5, undef, "MD5 '$md5' generated");
   is( $netkan->inflate, 0, "Return success correctly" );
@@ -73,9 +73,9 @@ TODO: {
   my @files = glob($config->working."/CKAN-meta/DogeCoinFlag/*");
   is( -e $files[0], 1, "Meta Data inflated" );
   is( $files[0], $netkan->_newest_file, "'".$netkan->_newest_file."' returned as the newest file");
-  
-  $netkan = App::KSP_CKAN::Tools::NetKAN->new( 
-    config    => $config, 
+
+  $netkan = App::KSP_CKAN::Tools::NetKAN->new(
+    config    => $config,
     netkan    => $test->tmp."/netkan.exe",
     cache     => $test->tmp."/cache",
     ckan_meta => $ckan,
@@ -83,14 +83,6 @@ TODO: {
     file      => $config->working."/NetKAN/NetKAN/DogeCoinFlag-broken.netkan"
   );
   isnt( $netkan->inflate, 0, "Return failure correctly" );
-
-  subtest 'Status Setting' => sub {
-    like($status->status->{'DogeCoinFlag-broken'}{last_error}, qr/Required property 'version' not found/, "'last_error' set on failure");
-    is($status->status->{'DogeCoinFlag-broken'}{failed}, 1, "'failed' true on failure");
-    is($status->status->{'DogeCoinFlag-broken'}{last_indexed}, undef, "'last_index' undef when no successful indexing has ever occured");
-    is($status->status->{'DogeCoinFlag'}{last_error}, undef, "'last_error' undef on success");
-    is($status->status->{'DogeCoinFlag'}{failed}, 0, "'failed' false on succes");
-  };
 
   ok( -d $test->tmp."/cache", "NetKAN Cache path set correctly");
 }
@@ -113,7 +105,7 @@ subtest 'File Validation' => sub {
 subtest 'Staged Commits' => sub {
   # Setup
   my $staged = App::KSP_CKAN::Tools::NetKAN->new(
-    config    => $config, 
+    config    => $config,
     netkan    => $test->tmp."/netkan.exe",
     cache     => $test->tmp."/cache", # TODO: Test default cache location
     ckan_meta => $ckan,
@@ -153,35 +145,35 @@ subtest 'Error Parsing' => sub {
     "Could not find CrowdSourcedScience directory in zipfile to install",
     "Zipfile Error Parsing Success"
   );
-  
+
   is (
     $netkan->_parse_error("2142 [1] FATAL CKAN.NetKAN.Program (null) - JSON deserialization error"),
     "JSON deserialization error",
     "JSON Error Parsing Success"
   );
-  
+
   my $error = <<EOF;
 Unhandled Exception:
 CKAN.Kraken: Cannot find remote and ID in kref: http://dl.dropboxusercontent.com/u/7121093/ksp-mods/KSP%5B1.0.2%5DWasdEditorCamera%5BMay20%5D.zip
-  at CKAN.NetKAN.MainClass.FindRemote (Newtonsoft.Json.Linq.JObject json) [0x00000] in <filename unknown>:0 
-  at CKAN.NetKAN.MainClass.Main (System.String[] args) [0x00000] in <filename unknown>:0 
+  at CKAN.NetKAN.MainClass.FindRemote (Newtonsoft.Json.Linq.JObject json) [0x00000] in <filename unknown>:0
+  at CKAN.NetKAN.MainClass.Main (System.String[] args) [0x00000] in <filename unknown>:0
 [ERROR] FATAL UNHANDLED EXCEPTION: CKAN.Kraken: Cannot find remote and ID in kref: http://dl.dropboxusercontent.com/u/7121093/ksp-mods/KSP%5B1.0.2%5DWasdEditorCamera%5BMay20%5D.zip
-  at CKAN.NetKAN.MainClass.FindRemote (Newtonsoft.Json.Linq.JObject json) [0x00000] in <filename unknown>:0 
-  at CKAN.NetKAN.MainClass.Main (System.String[] args) [0x00000] in <filename unknown>:0 
+  at CKAN.NetKAN.MainClass.FindRemote (Newtonsoft.Json.Linq.JObject json) [0x00000] in <filename unknown>:0
+  at CKAN.NetKAN.MainClass.Main (System.String[] args) [0x00000] in <filename unknown>:0
 EOF
-  
+
   is (
     $netkan->_parse_error( $error ),
     "FATAL UNHANDLED EXCEPTION: CKAN.Kraken: Cannot find remote and ID in kref: http://dl.dropboxusercontent.com/u/7121093/ksp-mods/KSP%5B1.0.2%5DWasdEditorCamera%5BMay20%5D.zip",
     "Generic Error Parsing Success"
   );
-  
+
   is (
     $netkan->_parse_error("791 [1] WARN CKAN.Curl (null) - Curl environment not pre-initialised, performing non-threadsafe init.\n8194 [1] FATAL CKAN.NetKAN.Program (null) - Could not find CrowdSourcedScience directory in zipfile to install"),
     "Could not find CrowdSourcedScience directory in zipfile to install",
     "Mutliline Fatal Success"
   );
-  
+
   is (
     $netkan->_parse_error( "Cookie Cat Crystal Combo powers... ACTIVATE" ),
     "Error wasn't parsable",

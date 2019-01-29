@@ -34,7 +34,7 @@ $netkan->checked;
 my $inflated = $netkan->last_inflated;
 my $indexed = $netkan->last_indexed;
 my $checked = $netkan->last_checked;
-$status->write_json;
+$status->update_status("TestKAN", $netkan);
 
 is(-e $status->_status_file, 1, "Status file written");
 

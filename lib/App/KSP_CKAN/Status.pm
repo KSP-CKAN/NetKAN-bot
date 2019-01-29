@@ -6,6 +6,7 @@ use warnings;
 use autodie;
 use Method::Signatures 20140224;
 use Carp qw( croak );
+use IO::LockedFile;
 use File::Slurper qw(read_text write_text);
 use Try::Tiny;
 use JSON;
@@ -29,7 +30,7 @@ use namespace::clean;
 
 =head1 DESCRIPTION
 
-Status object for tracking status of at least initially, NetKAN 
+Status object for tracking status of at least initially, NetKAN
 indexing.
 
 =cut
@@ -42,19 +43,7 @@ has 'config'        => ( is => 'ro', required => 1, isa => $Ref );
 has 'status_file'   => ( is => 'ro', default => sub { "netkan.json" } );
 has 'status_path'   => ( is => 'ro', lazy => 1, builder => 1 );
 has '_status_file'  => ( is => 'ro', lazy => 1, builder => 1 );
-has '_data'         => ( is => 'ro', lazy => 1, builder => 1 );
 has '_json'         => ( is => 'ro', lazy => 1, builder => 1 );
-
-has 'status' => ( 
-  is            => 'rw',
-  handles_via   => 'Hash',
-  handles       => {
-    get_val   => 'get',
-    set_val   => 'set',
-    all_keys  => 'keys'
-  },
-  default       => sub { { } }, 
-);
 
 method _build__json {
   return JSON->new->allow_blessed(1)->convert_blessed(1);
@@ -72,7 +61,7 @@ method _build__status_file {
   return $self->status_path."/".$self->status_file;
 }
 
-method _build__data {
+method _get_data() {
   my $raw;
   if (! -e $self->_status_file) {
     $raw = "{}";
@@ -90,6 +79,29 @@ method _build__data {
   return $data;
 }
 
+method _with_status($func) {
+  # Open file with flock locking to manage concurrent access
+  # This will block till it's our turn to be exclusive with the file
+  my $fh = IO::LockedFile->new($self->_status_file, 'a+');
+
+  # Load file contents and deserialize to JSON object
+  my $data = $self->_json->decode(join('', <$fh>) || '{}');
+
+  # Process the JSON object through function given in $func param
+  my $new_data = $func->($data);
+
+  # Clear the file so we can replace its contents
+  $fh->truncate(0);
+
+  # Jump back to beginning
+  $fh->seek(0, 0);
+
+  # Print new data to the file
+  print $fh $self->_json->encode($new_data);
+
+  # Lock will be released when $fh passes out of scope (now)
+}
+
 =method get_status
 
   my $netkan_status = $status->get_status( "BaconLabs" );
@@ -100,25 +112,48 @@ it if necessary or loading it from the available data if it exists.
 =cut
 
 method get_status($name) {
-  if ($self->_data->{$name}) {
-    $self->set_val($name, App::KSP_CKAN::Status::NetKAN->new($self->_data->{$name}));
-  } else {
-    $self->set_val($name, App::KSP_CKAN::Status::NetKAN->new(name => $name));
-  }
-  return $self->get_val($name);
+  my $data = $self->_get_data();
+  return $data->{$name}
+    ? App::KSP_CKAN::Status::NetKAN->new($data->{$name})
+    : App::KSP_CKAN::Status::NetKAN->new(name => $name);
 }
 
-=method write_json
-  
-  $status->write_json
+=method prune_missing
 
-Writes our status file out to disk.
+  $status->prune_missing(@identifiers)
+
+Removes from the status file any entries that aren't in the input list
 
 =cut
 
-method write_json {
-  my $json = $self->_json->encode($self->status);
-  write_text($self->_status_file, $json);
+# Remove the status entries that aren't in the input list
+# This allows us to preserve ALL previous entries in later updates
+method prune_missing(@identifiers) {
+  $self->_with_status(sub {
+    my $data = shift;
+    my $new_data = {};
+    # For simplicity, just copy across the ones that ARE in the input
+    foreach my $id (@identifiers) {
+      $new_data->{$id} = $data->{$id};
+    }
+    return $new_data;
+  });
+}
+
+=method update_status
+
+  $status->update_status($id, $status)
+
+Set a module's status object to the given value
+
+=cut
+
+method update_status($id, $status) {
+  $self->_with_status(sub {
+    my $data = shift;
+    $data->{$id} = $status;
+    return $data;
+  });
 }
 
 1;
