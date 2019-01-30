@@ -85,6 +85,7 @@ method _with_status($func) {
   my $fh = IO::LockedFile->new($self->_status_file, 'a+');
 
   # Load file contents and deserialize to JSON object
+  $fh->seek(0, 0);
   my $data = $self->_json->decode(join('', <$fh>) || '{}');
 
   # Process the JSON object through function given in $func param
