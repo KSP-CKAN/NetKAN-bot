@@ -123,12 +123,6 @@ subtest 'Staged Commits' => sub {
   is($ckan->current_branch, "master", "We were returned to the master branch");
   isnt(-e $file, 1, "Our staged file wasn't commited to master");
 
-  # Staged branch
-  $ckan->checkout_branch("staging");
-  is($ckan->current_branch, "staging", "We are on the staging branch");
-  $ckan->_hard_clean;
-  is(digest_file_hex( $file, "SHA-1" ), $hash, "Our staging branch was commited to");
-
   # Identifier branch
   $ckan->checkout_branch($identifier);
   is($ckan->current_branch, $identifier, "We are on the $identifier branch");

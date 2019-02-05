@@ -155,10 +155,6 @@ subtest 'Staged Commit' => sub {
   is($git->current_branch, "master", "We returned to the master branch");
   isnt(-e $file, 1, "Our staged file wasn't committed to master");
 
-  $git->checkout_branch("staging");
-  is($git->current_branch, "staging", "We are on to the staging branch");
-  $git->_hard_clean;
-  is(digest_file_hex( $file, "SHA-1" ), $hash, "Our staging branch was committed to");
   $git->checkout_branch($identifier);
   is($git->current_branch, $identifier, "We are on the $identifier branch");
   $git->_hard_clean;
@@ -176,8 +172,8 @@ subtest 'Staged Commit' => sub {
   $git->_hard_clean;
   is($update, 1, "We committed a change to staging");
 
-  # Get the last commit ID from staging
-  $git->checkout_branch("staging");
+  # Get the last commit ID from identifier branch
+  $git->checkout_branch($identifier);
   my $commit = $git->last_commit;
   $git->checkout_branch("master");
 
