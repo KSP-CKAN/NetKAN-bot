@@ -54,19 +54,6 @@ $netkan->full_index;
   is($git->current_branch, "master", "We started on the master branch");
   ok(! -d "CKAN-meta/$identifier", "Staged netkan not commited to master");
 
-  $git->checkout_branch("staging");
-  is($git->current_branch, "staging", "We are on the staging branch");
-  my @staged = glob( "./CKAN-meta/$identifier/*.ckan" );
-
-  TODO: {
-    local $TODO = $why if $ENV{TRAVIS};
-    ok($#staged != -1, "We commited files to staging");
-  }
-
-  foreach my $file (@staged) {
-    ok($file =~ /$identifier-v\d.\d\d.ckan/, "Commited to staged");
-  }
-
   $git->checkout_branch($identifier);
   is($git->current_branch, $identifier, "We are on the $identifier branch");
   my @id_branch = glob( "./CKAN-meta/$identifier/*.ckan" );

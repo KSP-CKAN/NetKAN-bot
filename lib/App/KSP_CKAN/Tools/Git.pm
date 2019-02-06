@@ -315,32 +315,19 @@ method staged_commit(:$identifier, :$file, :$message = "Generic Commit") {
   my $hash = digest_file_hex( $file, "SHA-1" );
   my $commit = $self->last_commit;
 
-  # We need to go back to master to avoid issues diverging from the 
-  # random branch if our staging branch doesn't exist. 
-  $self->checkout_branch($self->branch);
-
-  # Lets start with staging
-  $self->checkout_branch("staging");
-  
-  # We don't want to repeatedly PR changes  
-  if ( -e $file && digest_file_hex( $file, "SHA-1" ) eq $hash ) {
-    $self->delete_branch($random_branch);
-    return 0;
-  }
-  
-  $self->cherry_pick($commit);
-  # Upstream pulling needs to be done after commiting.
-  try { # Our remote may not have the branch, we don't mind.
-    $self->pull( ours => 1 );
-  };
-  $self->push;
- 
-  # We need to go back to our original branch to avoid
-  # diverging from our staging branch
+  # We need to go back to master to avoid issues diverging from the
+  # random branch if our identifier branch doesn't exist.
   $self->checkout_branch($self->branch);
 
   # Commit to identifier branch
   $self->checkout_branch($identifier);
+
+  # We don't want to repeatedly PR changes
+  if ( -e $file && digest_file_hex( $file, "SHA-1" ) eq $hash ) {
+    $self->delete_branch($random_branch);
+    return 0;
+  }
+
   $self->cherry_pick($commit);
   # Upstream pulling needs to be done after commiting.
   try { # Our remote may not have the branch, we don't mind.
