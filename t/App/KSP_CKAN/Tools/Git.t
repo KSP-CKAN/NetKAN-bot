@@ -159,8 +159,11 @@ subtest 'Staged Commit' => sub {
   is($git->current_branch, $identifier, "We are on the $identifier branch");
   $git->_hard_clean;
   is(digest_file_hex( $file, "SHA-1" ), $hash, "Our $identifier branch was committed to");
+  $git->checkout_branch("master");
 
   # File update
+  # NOTE: We disable random here so that the no change file isn't different
+  #       on the next test.
   $test->create_ckan( file => $file, random => 0 );
   $hash = digest_file_hex( $file, "SHA-1" );
   $git->add($file);
@@ -170,7 +173,7 @@ subtest 'Staged Commit' => sub {
     message     => "Modified File",
   );
   $git->_hard_clean;
-  is($update, 1, "We committed a change to staging");
+  is($update, 1, "We committed a change to $identifier");
 
   # Get the last commit ID from identifier branch
   $git->checkout_branch($identifier);
@@ -187,12 +190,26 @@ subtest 'Staged Commit' => sub {
     message     => "No change file",
   );
   is($nochange, 0, "File with no changes reports not committed");
-  $git->checkout_branch("staging");
+  $git->checkout_branch($identifier);
   is($git->last_commit, $commit, "Commit ID matches prior commit");
+  $git->checkout_branch("master");
+
+  # Update with changes and the remote branch has been removed since 
+  # the last set of changes - KSP-CKAN/NetKAN-bot#85
+  $git->_test_remove_remote_branch($identifier);
+  $test->create_ckan( file => $file, random => 1 );
+  $git->add($file);
+  $hash = digest_file_hex( $file, "SHA-1" );
+  my $update_nobranch = $git->staged_commit(
+    file        => $file,
+    identifier  => $identifier,
+    message     => "File change - remote removed previously",
+  );
+  is($update_nobranch, 1, "File with upstream removed commited successfully");
 
   # Ensure we're always starting on Master
-  $git->checkout_branch("staging");
-  is($git->current_branch, "staging", "We are on to the staging branch");
+  $git->checkout_branch("not_master");
+  is($git->current_branch, "not_master", "We are not on the master branch");
   my $branch = App::KSP_CKAN::Tools::Git->new(
     remote => $test->tmp."/data/CKAN-meta",
     local => $test->tmp,
