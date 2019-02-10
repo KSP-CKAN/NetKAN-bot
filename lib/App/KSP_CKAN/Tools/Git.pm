@@ -11,6 +11,9 @@ use Git::Wrapper;
 use Capture::Tiny qw(capture capture_stdout);
 use File::chdir;
 use File::Path qw(remove_tree mkpath);
+use File::Temp qw(tempdir);
+use File::Copy qw(copy);
+use File::Basename qw(basename dirname);
 use Digest::file qw(digest_file_hex);
 use Moo;
 use namespace::clean;
@@ -118,6 +121,12 @@ method _hard_clean {
   capture { system("git", "reset", "--hard", "HEAD") };
   capture { system("git", "clean", "-df") };
   return;
+}
+
+method _test_remove_remote_branch($branch) {
+  # This is used in testing to cover off a test case for
+  # KSP-CKAN/NetKAN-bot#85
+  $self->_git->RUN("push", "origin", "--delete", $branch);
 }
 
 method _random_branch {
@@ -282,22 +291,31 @@ branch and cherry-picks the commit from the previous commit to staging.
 
 =cut
 
-# TODO: The staging branch is will reflect the first point it branched
-#       from master on the NetKAN bot. So to use the staging branch
-#       it must accompany the primary repository in ckan. It'll worth
-#       seeing how this works in practice and think on how to solve
-#       them drifting.
-
 # NOTE: We're using a cherry-pick workflow because we always generate files
 #       in master. This is so we can have as little impact on the primary
 #       workflow as possible. Staged commits are a seperate workflow that
 #       only get triggered for netkans that require it.
 
 method staged_commit(:$identifier, :$file, :$message = "Generic Commit") {
+  # Copy out our staged file and clean our repository as we can't update
+  # master when a file conflicts - addresses KSP-CKAN/NetKAN-bot#85
+  my $staged_tmp = File::Temp::tempdir();
+  my $staged_tmp_file = $staged_tmp."/".basename($file);
+  copy($file, $staged_tmp_file);
+  $self->reset( file => $file);
+  $self->clean_untracked();
+
   # Need to push our changes before checking out staging otherwise our
   # staged commits end up with the commits already in master.
   $self->pull( ours => 1 );
   $self->push;
+
+  # Return to our Identifier branch so that multiple updates
+  # before merging into master succeed - fixes KSP-CKAN/NetKAN-bot#86
+  $self->checkout_branch($identifier);
+  mkpath(dirname($file));
+  copy($staged_tmp_file, $file);
+  $self->add($file);
 
   # We could stash, but the results were inconsistent and it seemed hard,
   # with lots of edge cases.
@@ -305,19 +323,17 @@ method staged_commit(:$identifier, :$file, :$message = "Generic Commit") {
   # https://codingkilledthecat.wordpress.com/2012/04/27/git-stash-pop-considered-harmful/
   my $random_branch = $self->_random_branch;
   $self->checkout_branch($random_branch);
-  $self->commit(
-    file    => $file,
-    message => $message,
-  );
+  try {
+    $self->commit(
+      file    => $file,
+      message => $message,
+    );
+  };
 
   # We need to hash the new file for comparrison against the existing
   # file before cherry-picking
   my $hash = digest_file_hex( $file, "SHA-1" );
   my $commit = $self->last_commit;
-
-  # We need to go back to master to avoid issues diverging from the
-  # random branch if our identifier branch doesn't exist.
-  $self->checkout_branch($self->branch);
 
   # Commit to identifier branch
   $self->checkout_branch($identifier);
