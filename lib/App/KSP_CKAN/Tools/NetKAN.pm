@@ -197,7 +197,7 @@ method _commit($file) {
       message     => "NetKAN generated mods - $changed",
     );
     $self->info("Committed $changed to staging") if $result;
-    $self->_github->submit_pr($self->_netkan_metadata->identifier) if $self->config->GH_token && $result;
+    $self->_github->submit_pr($self->_netkan_metadata->identifier, $self->_netkan_metadata->staging_reason) if $self->config->GH_token && $result;
     return 0;
   }
 

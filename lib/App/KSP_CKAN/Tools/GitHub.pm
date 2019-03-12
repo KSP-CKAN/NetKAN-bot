@@ -57,11 +57,11 @@ Submits a pull request using the identifier
 
 =cut
 
-method submit_pr($identifier) {
+method submit_pr($identifier, $body) {
   try {
     my $pull = $self->_github->pull_request->create_pull( {
       "title" => "NetKAN inflated: $identifier",
-      "body"  => "$identifier has been staged, please test and merge",
+      "body"  => $body || "$identifier has been staged, please test and merge",
       "head"  => "$identifier",
       "base"  => "master"
     } );

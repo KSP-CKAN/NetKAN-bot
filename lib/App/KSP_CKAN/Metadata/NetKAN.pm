@@ -69,6 +69,7 @@ has 'kref'                  => ( is => 'ro', lazy => 1, builder => 1 );
 has 'vref'                  => ( is => 'ro', lazy => 1, builder => 1 );
 has 'name'                  => ( is => 'ro', lazy => 1, builder => 1 );
 has 'staging'               => ( is => 'ro', lazy => 1, builder => 1 );
+has 'staging_reason'        => ( is => 'ro', lazy => 1, builder => 1 );
 has 'license'               => ( is => 'ro', lazy => 1, builder => 1 );
 
 # TODO: We're already using file slurper + JSON elsewhere. We should
@@ -101,6 +102,10 @@ method _build_license {
 
 method _build_staging {
   return $self->_raw->{config}{'x_netkan_staging'} ? $self->_raw->{config}{'x_netkan_staging'} : 0 ;
+}
+
+method _build_staging_reason {
+  return $self->_raw->{config}{'x_netkan_staging_reason'};
 }
 
 =method licenses
