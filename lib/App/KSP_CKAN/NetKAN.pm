@@ -105,7 +105,7 @@ method _inflate_all(:$rescan = 1) {
   $self->_NetKAN->pull;
   local $CWD = $self->config->working."/".$self->_NetKAN->working;
 
-  my @files = glob("NetKAN/*.netkan");
+  my @files = glob("NetKAN/*.netkan NetKAN/*/*.netkan");
   $self->_status->prune_missing(map { ($_ =~ m{([^/.]+)\.netkan$})[0] } @files);
   foreach my $file (@files) {
     my $netkan = App::KSP_CKAN::Tools::NetKAN->new(

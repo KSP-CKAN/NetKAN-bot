@@ -185,7 +185,7 @@ method get_counts {
   # Chdir to NetKAN repo root
   local $CWD = $self->config->working . '/' . $self->_NetKAN->working;
   # Loop over the .netkan files
-  foreach my $file (glob('NetKAN/*.netkan')) {
+  foreach my $file (glob('NetKAN/*.netkan NetKAN/*/*.netkan')) {
     # Get this module's download count
     my $count = $self->_get_count_from_file($file);
     next unless defined($count);
