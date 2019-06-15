@@ -135,7 +135,9 @@ method prune_missing(@identifiers) {
     my $new_data = {};
     # For simplicity, just copy across the ones that ARE in the input
     foreach my $id (@identifiers) {
-      $new_data->{$id} = $data->{$id};
+      if ($data->{$id}) {
+        $new_data->{$id} = $data->{$id};
+      }
     }
     return $new_data;
   });
