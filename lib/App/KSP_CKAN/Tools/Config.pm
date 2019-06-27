@@ -34,8 +34,6 @@ has '_config'       => ( is => 'ro', lazy => 1, builder => 1 );
 has 'CKAN_meta'     => ( is => 'ro', lazy => 1, builder => 1 );
 has 'NetKAN'        => ( is => 'ro', lazy => 1, builder => 1 );
 has 'netkan_exe'    => ( is => 'ro', lazy => 1, builder => 1 );
-has 'ckan_validate' => ( is => 'ro', lazy => 1, builder => 1 );
-has 'ckan_schema'   => ( is => 'ro', lazy => 1, builder => 1 );
 has 'GH_token'      => ( is => 'ro', lazy => 1, builder => 1 );
 has 'GH_user'       => ( is => 'ro', lazy => 1, builder => 1 );
 has 'GH_repo'       => ( is => 'ro', lazy => 1, builder => 1 );
@@ -66,16 +64,6 @@ method _build_NetKAN {
 method _build_netkan_exe {
   croak( "Missing 'NetKAN' from config" ) if ! $self->_config->{_}{'netkan_exe'};
   return $self->_config->{_}{'netkan_exe'};
-}
-
-method _build_ckan_validate {
-  croak( "Missing 'ckan_validate' from config" ) if ! $self->_config->{_}{'ckan_validate'};
-  return $self->_config->{_}{'ckan_validate'};
-}
-
-method _build_ckan_schema {
-  croak( "Missing 'ckan_schema' from config" ) if ! $self->_config->{_}{'ckan_schema'};
-  return $self->_config->{_}{'ckan_schema'};
 }
 
 method _build_IA_access {

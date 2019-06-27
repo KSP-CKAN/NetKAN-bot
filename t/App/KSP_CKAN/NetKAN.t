@@ -24,7 +24,7 @@ my $config = App::KSP_CKAN::Tools::Config->new(
 );
 
 use_ok("App::KSP_CKAN::NetKAN");
-my $netkan = App::KSP_CKAN::NetKAN->new( 
+my $netkan = App::KSP_CKAN::NetKAN->new(
   config => $config,
 );
 
@@ -49,7 +49,7 @@ $netkan->full_index;
     local => $config->working,
     clean => 1,
   );
-  
+
   my $identifier = "DogeCoinFlagStaged";
   is($git->current_branch, "master", "We started on the master branch");
   ok(! -d "CKAN-meta/$identifier", "Staged netkan not commited to master");
@@ -66,9 +66,6 @@ $netkan->full_index;
   foreach my $file (@id_branch) {
     ok($file =~ /$identifier-v\d.\d\d.ckan/, "Commited to $identifier");
   }
-
-  ok(! -d  "CKAN-meta/DogeCoinFlag-broken", "No broken metadata committed");
-  ok(! -d  "CKAN-meta/DogeCoinFlag-invalid", "No invalid metadata committed");
 }
 
 ok( -d $config->cache, "NetKAN cache path set correctly" );

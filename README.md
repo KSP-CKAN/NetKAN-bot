@@ -3,7 +3,7 @@ App::KSP-CKAN    [![Build Status](https://travis-ci.org/KSP-CKAN/NetKAN-bot.svg?
 Non Perl Dependencies
 =====================
 ```bash
-apt-get install liblocal-lib-perl cpanminus build-essential mono-complete libcurl4-openssl-dev python-jsonschema libdist-zilla-perl
+apt-get install liblocal-lib-perl cpanminus build-essential mono-complete libcurl4-openssl-dev libdist-zilla-perl
 ```
 
 NetKAN will need certs for mono
@@ -42,8 +42,6 @@ An ini file with the following contents will need to created at ~/.ksp-ckan
 CKAN_meta=git@github.com:KSP-CKAN/CKAN-meta.git
 NetKAN=git@github.com:KSP-CKAN/NetKAN-bot.git
 netkan_exe=https://ckan-travis.s3.amazonaws.com/netkan.exe
-ckan_validate=https://raw.githubusercontent.com/KSP-CKAN/CKAN/master/bin/ckan-validate.py
-ckan_schema=https://raw.githubusercontent.com/KSP-CKAN/CKAN/master/CKAN.schema
 working=/home/NetKAN/NetKAN
 ```
 
@@ -71,7 +69,7 @@ Enable it in cron with (crontab -e as the netkan user):
 00 */3 * * * PERL5LIB=/home/netkan/perl5/lib/perl5/ netkan-indexer
 ```
 
-There is a 'lite' cli option is not implemented. It's a future concept to allow 'lite' 
+There is a 'lite' cli option is not implemented. It's a future concept to allow 'lite'
 skimming of metadata API endpoints without performing a full metadata inflation.
 
 License

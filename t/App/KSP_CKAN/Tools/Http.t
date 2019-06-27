@@ -20,8 +20,6 @@ subtest 'mirror' => sub {
   $http->mirror( url => "https://ckan-travis.s3.amazonaws.com/netkan.exe", path => $test->tmp."/netkan.exe");
   is(-e $test->tmp."/netkan.exe", 1, "Mirrored successfully");
   isnt(-X $test->tmp."/netkan.exe", 1, "File not executable");
-  $http->mirror( url => "https://raw.githubusercontent.com/KSP-CKAN/CKAN/master/bin/ckan-validate.py", path => $test->tmp."/ckan-validate.py", exe => 1);
-  is(-X $test->tmp."/ckan-validate.py", 1, "File executable");
 };
 
 $test->cleanup;
