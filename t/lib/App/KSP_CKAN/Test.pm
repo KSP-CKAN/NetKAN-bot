@@ -96,21 +96,13 @@ method create_repo($repo) {
 Creates an example ckan that would pass validation at the specified
 path.
 
-Takes an optional extra argument, that if set to false will create
-a ckan that won't pass schema validation.
-
-  $test->create_ckan( file => "/path/to/file", valid => 0);
+  $test->create_ckan( file => "/path/to/file" );
 
 =over
 
 =item file
 
 Path and file we are creating.
-
-=item valid
-
-Defaults to true. False value will create a CKAN that will fail
-validation against the schema.
 
 =item kind
 
@@ -127,7 +119,6 @@ Allows us to specify a different license.
 
 method create_ckan(
   :$file,
-  :$valid       = 1,
   :$random      = 1,
   :$identifier  = "ExampleKAN",
   :$kind        = "package",
@@ -136,7 +127,7 @@ method create_ckan(
   :$sha256      = "1A2B3C4D5E1A2B3C4D5E",
   :$version     = "1.0.0.1",
 ) {
-  my $attribute = $valid ? "identifier" : "invalid_schema";
+  my $attribute = "identifier";
   my $rand = $random ? $self->_random_string : "random";
 
   # Allows us against a metapackage. TODO: make into valid metapackage
@@ -227,8 +218,6 @@ method create_config(:$optional = 1, :$nogh = 0) {
   print $in "CKAN_meta=".$self->_tmp."/data/CKAN-meta\n";
   print $in "NetKAN=".$self->_tmp."/data/NetKAN\n";
   print $in "netkan_exe=https://ckan-travis.s3.amazonaws.com/netkan.exe\n";
-  print $in "ckan_validate=https://raw.githubusercontent.com/KSP-CKAN/CKAN/master/bin/ckan-validate.py\n";
-  print $in "ckan_schema=https://raw.githubusercontent.com/KSP-CKAN/CKAN/master/CKAN.schema\n";
   print $in "IA_access=12345678\n";
   print $in "IA_secret=87654321\n";
 

@@ -48,8 +48,6 @@ $netkan_git->pull;
 # netkan.exe
 my $http = App::KSP_CKAN::Tools::Http->new();
 $http->mirror( url => $config->netkan_exe, path => $test->tmp."/netkan.exe", exe => 1 );
-$http->mirror( url => $config->ckan_validate, path => $config->working."/ckan-validate.py", exe => 1 );
-$http->mirror( url => $config->ckan_schema, path => $config->working."/CKAN.schema" );
 
 use_ok("App::KSP_CKAN::Tools::NetKAN");
 my $netkan = App::KSP_CKAN::Tools::NetKAN->new(
@@ -86,20 +84,6 @@ TODO: {
 
   ok( -d $test->tmp."/cache", "NetKAN Cache path set correctly");
 }
-
-# Test file validation
-subtest 'File Validation' => sub {
-  $test->create_ckan( file => $config->working."/CKAN-meta/test_file.ckan" );
-  $netkan->_commit( $config->working."/CKAN-meta/test_file.ckan" );
-  is($netkan->ckan_meta->changed(origin => 0), 0, "Commit validated file successful");
-  $netkan->ckan_meta->push;
-  is($netkan->ckan_meta->changed, 0, "Changes pushed repository" );
-  $test->create_ckan( file => $config->working."/CKAN-meta/test_file2.ckan", valid => 0 );
-  $netkan->_commit( $config->working."/CKAN-meta/test_file2.ckan" );
-  is( $netkan->ckan_meta->changed, 0, "broken metadata was not committed" );
-  $netkan->ckan_meta->add;
-  is( $netkan->ckan_meta->changed, 0, "broken metadata gets removed" );
-};
 
 # Test staged commits
 subtest 'Staged Commits' => sub {

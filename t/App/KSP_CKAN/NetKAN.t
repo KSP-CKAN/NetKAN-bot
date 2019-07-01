@@ -24,7 +24,7 @@ my $config = App::KSP_CKAN::Tools::Config->new(
 );
 
 use_ok("App::KSP_CKAN::NetKAN");
-my $netkan = App::KSP_CKAN::NetKAN->new( 
+my $netkan = App::KSP_CKAN::NetKAN->new(
   config => $config,
 );
 
@@ -41,7 +41,7 @@ $netkan->full_index;
   my $why = "These tests pass locally, but not within Travis";
   TODO: {
     local $TODO = $why if $ENV{TRAVIS};
-    ok($#files != -1, "We commited files to master");
+    ok($#files != -1, "We committed files to master");
   }
 
   my $git = App::KSP_CKAN::Tools::Git->new(
@@ -49,10 +49,10 @@ $netkan->full_index;
     local => $config->working,
     clean => 1,
   );
-  
+
   my $identifier = "DogeCoinFlagStaged";
   is($git->current_branch, "master", "We started on the master branch");
-  ok(! -d "CKAN-meta/$identifier", "Staged netkan not commited to master");
+  ok(! -d "CKAN-meta/$identifier", "Staged netkan not committed to master");
 
   $git->checkout_branch($identifier);
   is($git->current_branch, $identifier, "We are on the $identifier branch");
@@ -60,15 +60,12 @@ $netkan->full_index;
 
   TODO: {
     local $TODO = $why if $ENV{TRAVIS};
-    ok($#id_branch != -1, "We commited files to $identifier");
+    ok($#id_branch != -1, "We committed files to $identifier");
   }
 
   foreach my $file (@id_branch) {
-    ok($file =~ /$identifier-v\d.\d\d.ckan/, "Commited to $identifier");
+    ok($file =~ /$identifier-v\d.\d\d.ckan/, "Committed to $identifier");
   }
-
-  ok(! -d  "CKAN-meta/DogeCoinFlag-broken", "No broken metadata committed");
-  ok(! -d  "CKAN-meta/DogeCoinFlag-invalid", "No invalid metadata committed");
 }
 
 ok( -d $config->cache, "NetKAN cache path set correctly" );

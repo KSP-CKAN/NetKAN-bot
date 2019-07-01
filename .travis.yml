@@ -15,9 +15,7 @@ before_install:
   # Prevent "Please tell me who you are" errors for certain DZIL configs
   - git config --global user.name "TravisCI"
 install:
-  # Deal with all of the DZIL dependancies, quickly and quietly
-  - pip install --user jsonschema
-  - export PYTHONPATH=~/.local/lib/python2.7/site-packages/
+  # Deal with all of the DZIL dependencies, quickly and quietly
   - cpanm --quiet --notest --skip-satisfied Dist::Zilla
   - cpanm --quiet --notest --skip-satisfied Test::Perl::Critic
   - dzil authordeps | grep -vP '[^\w:]' | xargs -n 5 -P 10 cpanm --quiet --notest --skip-satisfied

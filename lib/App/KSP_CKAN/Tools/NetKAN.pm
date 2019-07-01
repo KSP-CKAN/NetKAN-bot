@@ -166,14 +166,6 @@ method _commit($file) {
   $self->ckan_meta->add($file);
   my $changed = basename($file,  ".ckan");
 
-  if ( $self->validate($file) ) {
-    $self->warn("Failed to Parse $changed");
-    $self->ckan_meta->reset(file => $file);
-    $self->ckan_meta->clean_untracked;
-    $self->_status->failure("Schema validation failed");
-    return 1;
-  }
-
   if ($self->is_debug()) {
     $self->debug("$changed would have been committed");
     $self->ckan_meta->reset(file => $file);
@@ -256,6 +248,6 @@ method inflate {
   return 0;
 }
 
-with('App::KSP_CKAN::Roles::Logger','App::KSP_CKAN::Roles::Validate');
+with('App::KSP_CKAN::Roles::Logger');
 
 1;
